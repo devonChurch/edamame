@@ -39,7 +39,7 @@ const Hero = class {
 
         this.graphs = [];
 
-        for (let i = 0; i < 1; i += 1) {
+        for (let i = 0; i < 3; i += 1) {
 
             this.graphs[i] = new Graph(i, this.$window, this.$hero);
 
@@ -55,66 +55,101 @@ const Hero = class {
 
 };
 
+//
+//
+//
+//
+//
+
 const Graph = class {
 
     constructor(i, $window, $hero) {
 
         console.log(`Constructing Graph (${i})`);
 
-        $hero.append($(`<svg id="hero__graph-${i}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200" preserveAspectRatio="xMidYMid meet" />`));
+        $hero.append($(`<svg id="hero__graph-${i}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet" />`));
         this.paper = Snap(`#hero__graph-${i}`);
-        this.paper.path(this.generateSpline());
+        this.path = this.paper.path(this.createPath());
+        this.animatePath();
 
     }
 
-    generateSpline() {
+    createPath() {
 
-        let spline = '';
+        this.resetPathData();
+        this.generatePathData();
+        return this.generateSvgCode();
 
-        spline += this.startPoint();
-        spline += this.cubicBezier();
+    }
+
+    resetPathData() {
+
+        this.data = {
+            x: 0, // the total x position
+            m: {},
+            c: {},
+            s: []
+        };
+
+    }
+
+    generatePathData() {
+
+        // generate path data in object format THEN build spline
+        // this way you can pass in data and determain new offset based on previous coordinates
+        // also we can build the animated circles with solid x and y positions
+
+        this.buildM();
+        this.buildC();
 
         for (let i = 0; i < 5; i += 1) {
 
-            spline += this.smoothCurve();
+            this.buildS(i);
 
         }
 
-        return spline;
+    }
+
+    buildM() { // startPoint
+
+        const x1 = -10;
+        const y1 = this.offset(250, 20);
+
+        this.data.x += x1;
+        this.data.m = {x1, y1};
+
+        // return `M${x1},${y1}`;
 
     }
 
-    startPoint() {
+    buildC() { // cubicBezier
 
-        // M ${x1}, ${y1}
-
-        const y1 = this.offset(100, 20);
-
-        return `M-10,${y1}`;
-
-    }
-
-    cubicBezier() {
-
-        // c ${x1}, ${y1}, ${xC}, ${yC}, ${x2}, ${y2}
-
+        const x1 = 0;
+        const y1 = 0;
         const x2 = this.offset(100, 20);
         const y2 = this.offset(-20, 10);
         const xC = x2 / 2;
         const yC = this.offset(-20, 10);
 
-        return `c0,0, ${xC},${yC}, ${x2},${y2}`;
+        this.data.x += x1 + x2;
+        this.data.c = {x1, y1, xC, yC, x2, y2};
+
+        // return `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
 
     }
 
-    smoothCurve() {
+    buildS(i) { // smoothCurve
 
-        // c ${x1}, ${y1}, ${x2}, ${y2}
+        const base = i > 0 ? this.data.s[i - 1].sX / 2 : this.data.c.x2 - 20; // i > 0 ? this.data.s[i - 1].x1 - this.data.s[i - 1].sX : 100;
+        const sX = this.offset(base, 20); // i > 0 ? this.data.s[i - 1].sX / 2 : 100; // this.offset(base, 20);
+        const sY = this.offset(10, 10);
+        const x1 = this.offset(100, 20);
+        const y1 = this.offset(-20, 10);
 
-        const x2 = this.offset(100, 20);
-        const y2 = this.offset(-20, 10);
+        this.data.x += x1;
+        this.data.s[i] = {sX, sY, x1, y1};
 
-        return `s100,10, ${x2},${y2}`;
+        // return `s${sX},{sY}, ${x1},${y1}`;
 
     }
 
@@ -128,9 +163,40 @@ const Graph = class {
 
         const min = 0;
         const random =  Math.floor(Math.random() * (max - min + 1)) + min;
-        console.log(random);
 
         return random;
+
+    }
+
+    generateSvgCode() {
+
+        let svg = '';
+        let p;
+
+        p = this.data.m;
+        svg += `M${p.x1},${p.y1}`; // buildM();
+
+        p = this.data.c;
+        svg += `c${p.x1},${p.y1}, ${p.xC},${p.yC}, ${p.x2},${p.y2}`; // buildC();
+
+        for (let i = 0; i < this.data.s.length; i += 1) {
+
+            p = this.data.s[i];
+            svg += `s${p.sX},${p.sY}, ${p.x1},${p.y1}`; // buildS();
+
+        }
+
+        return svg;
+
+    }
+
+    animatePath() {
+
+        this.path.animate(
+			{ path: this.createPath() },
+			1000,
+			mina.easeinout,
+			() => { this.animatePath(); });
 
     }
 

@@ -1,18 +1,20 @@
 .hero {
-
+    background: skyblue;
     height: 500px;
+    position: relative;
 
-    #quadratic-bezier {
-        // background: orange;
-    }
-
-    svg {
+    &__graph {
+        height: auto;
+        left: 0;
+        position: absolute;
+        width: 100%;
+        top: 0;
 
         path {
-            stroke-width: 4;
+            stroke-width: 1;
             stroke: #000;
             stroke-linecap: round;
-            fill: none;
+            fill: none; // rgba(black, 0.25);
         }
     }
 }
