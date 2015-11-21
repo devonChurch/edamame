@@ -67,10 +67,12 @@ const Graph = class {
 
         console.log(`Constructing Graph (${i})`);
 
-        $hero.append($(`<svg id="hero__graph-${i}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet" />`));
+        $hero.append($(`<svg id="hero__graph-${i}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" preserveAspectRatio="xMidYMid meet" />`));
+        this.sequence = i % 2;
         this.paper = Snap(`#hero__graph-${i}`);
         this.path = this.paper.path(this.createPath());
         this.animatePath();
+
 
     }
 
@@ -98,22 +100,27 @@ const Graph = class {
         // generate path data in object format THEN build spline
         // this way you can pass in data and determain new offset based on previous coordinates
         // also we can build the animated circles with solid x and y positions
+        console.log(this.sequence);
+        let d = this.sequence % 2; // this.currentDirection(this.reference);
 
         this.buildM();
-        this.buildC();
+        this.buildC(this.currentDirection(d));
 
         for (let i = 0; i < 5; i += 1) {
 
-            this.buildS(i);
+            d += 1;
+            this.buildS(i, this.currentDirection(d));
 
         }
+
+        // this.sequence += 1;
 
     }
 
     buildM() { // startPoint
 
         const x1 = -10;
-        const y1 = this.offset(250, 20);
+        const y1 = 250; // this.offset(250, 20);
 
         this.data.x += x1;
         this.data.m = {x1, y1};
@@ -122,14 +129,14 @@ const Graph = class {
 
     }
 
-    buildC() { // cubicBezier
+    buildC(d) { // cubicBezier
 
         const x1 = 0;
         const y1 = 0;
-        const x2 = this.offset(100, 20);
-        const y2 = this.offset(-20, 10);
+        const x2 = this.offset(70, 20);
+        const y2 = 0; // this.offset(20, 20);
         const xC = x2 / 2;
-        const yC = this.offset(-20, 10);
+        const yC = this.offset(20, 20) * d; // this.offset(-20, 20);
 
         this.data.x += x1 + x2;
         this.data.c = {x1, y1, xC, yC, x2, y2};
@@ -138,18 +145,26 @@ const Graph = class {
 
     }
 
-    buildS(i) { // smoothCurve
+    buildS(i, d) { // smoothCurve
 
-        const base = i > 0 ? this.data.s[i - 1].sX / 2 : this.data.c.x2 - 20; // i > 0 ? this.data.s[i - 1].x1 - this.data.s[i - 1].sX : 100;
-        const sX = this.offset(base, 20); // i > 0 ? this.data.s[i - 1].sX / 2 : 100; // this.offset(base, 20);
-        const sY = this.offset(10, 10);
+        // const base = i > 0 ? this.data.s[i - 1].sX / 2 : this.data.c.x2 - 20; // i > 0 ? this.data.s[i - 1].x1 - this.data.s[i - 1].sX : 100;
+        const sX = this.offset(70, 20); // i > 0 ? this.data.s[i - 1].sX / 2 : 100; // this.offset(base, 20);
+        const sY = sX / 2 * d * i / 2; // this.offset(10, 10); //  * this.currentDirection(i);
         const x1 = this.offset(100, 20);
-        const y1 = this.offset(-20, 10);
+        const y1 = -10; // this.offset(20, 20); //  * this.currentDirection(i);
 
         this.data.x += x1;
         this.data.s[i] = {sX, sY, x1, y1};
 
         // return `s${sX},{sY}, ${x1},${y1}`;
+
+    }
+
+    currentDirection(d) {
+
+        console.log(`d = ${d}`);
+
+        return d % 2 === 0 ? -1 : 1;
 
     }
 
@@ -196,7 +211,8 @@ const Graph = class {
 			{ path: this.createPath() },
 			1000,
 			mina.easeinout,
-			() => { this.animatePath(); });
+			() => { this.animatePath(); }
+        );
 
     }
 
