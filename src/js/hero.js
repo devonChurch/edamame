@@ -7,6 +7,143 @@ const Hero = class {
 
     constructor() {
 
+        console.log('Constructing Hero');
+
+        this.$window = $(window);
+        this.$hero = $('#hero');
+        // this.listeners();
+        this.graphInstances();
+
+
+    }
+
+    listeners() {
+
+        console.log('Hero => listeners()');
+
+        this.$window.on('resize', () => {
+
+            this.graphInstances();
+
+        }).on('scroll', () => {
+
+            this.testViewPort();
+
+        }).resize().scroll();
+
+    }
+
+    graphInstances() {
+
+        console.log('Hero => graphInstances()');
+
+        this.graphs = [];
+
+        for (let i = 0; i < 1; i += 1) {
+
+            this.graphs[i] = new Graph(i, this.$window, this.$hero);
+
+        }
+
+    }
+
+    testViewPort() {
+
+        console.log('Hero => testViewPort()');
+
+    }
+
+};
+
+const Graph = class {
+
+    constructor(i, $window, $hero) {
+
+        console.log(`Constructing Graph (${i})`);
+
+        $hero.append($(`<svg id="hero__graph-${i}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200" preserveAspectRatio="xMidYMid meet" />`));
+        this.paper = Snap(`#hero__graph-${i}`);
+        this.paper.path(this.generateSpline());
+
+    }
+
+    generateSpline() {
+
+        let spline = '';
+
+        spline += this.startPoint();
+        spline += this.cubicBezier();
+
+        for (let i = 0; i < 5; i += 1) {
+
+            spline += this.smoothCurve();
+
+        }
+
+        return spline;
+
+    }
+
+    startPoint() {
+
+        // M ${x1}, ${y1}
+
+        const y1 = this.offset(100, 20);
+
+        return `M-10,${y1}`;
+
+    }
+
+    cubicBezier() {
+
+        // c ${x1}, ${y1}, ${xC}, ${yC}, ${x2}, ${y2}
+
+        const x2 = this.offset(100, 20);
+        const y2 = this.offset(-20, 10);
+        const xC = x2 / 2;
+        const yC = this.offset(-20, 10);
+
+        return `c0,0, ${xC},${yC}, ${x2},${y2}`;
+
+    }
+
+    smoothCurve() {
+
+        // c ${x1}, ${y1}, ${x2}, ${y2}
+
+        const x2 = this.offset(100, 20);
+        const y2 = this.offset(-20, 10);
+
+        return `s100,10, ${x2},${y2}`;
+
+    }
+
+    offset(base, variance) {
+
+        return this.randomise(1) === 0 ? base + this.randomise(variance) : base - this.randomise(variance);
+
+    }
+
+    randomise(max) {
+
+        const min = 0;
+        const random =  Math.floor(Math.random() * (max - min + 1)) + min;
+        console.log(random);
+
+        return random;
+
+    }
+
+};
+
+module.exports = new Hero();
+
+/*
+
+const Hero = class {
+
+    constructor() {
+
         this.$hero = $('#hero');
         this.paper = this.createPaper();
 
@@ -42,9 +179,7 @@ const Hero = class {
 
 };
 
-// module.exports = new Hero();
-
-
+*/
 
 /*
 
