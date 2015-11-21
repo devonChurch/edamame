@@ -19,7 +19,8 @@ module.exports = {
     module: {
         loaders: [
             { test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css?sourceMap!autoprefixer?browsers=last 2 versions!sass') },
-            { test: /\.js$/, exclude: /node_modules/, loader: 'babel!eslint'} // Automatically generates source maps without the sourceMaps config
+            { test: /\.js$/, exclude: /node_modules/, loader: 'babel!eslint'}, // Automatically generates source maps without the sourceMaps config
+            { test: require.resolve('snapsvg'), loader: 'imports?this=>window,fix=>module.exports=0' }
         ]
     },
     eslint: {

@@ -1,0 +1,18 @@
+.hero {
+
+    height: 500px;
+
+    #quadratic-bezier {
+        background: orange;
+    }
+
+    svg {
+
+        path {
+            stroke-width: 4;
+            stroke: #000;
+            stroke-linecap: round;
+            fill: none;
+        }
+    }
+}

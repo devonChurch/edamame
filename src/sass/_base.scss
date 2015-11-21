@@ -1,0 +1,45 @@
+@font-face {
+    font-family: 'BLOKKNeue-Regular';
+    src:  url('/font/BLOKKNeue-Regular.woff') format('woff');
+}
+
+$palette: (
+    pink: #E91E63,
+    purple: #673AB7,
+    blue: #03A9F4,
+    green: #009688,
+    yellow: #FFEB3B,
+    orange: #FF5722,
+    brown: #795548,
+    gray: #9E9E9E
+);
+
+@function palette($color) {
+    @return map-get($palette, $color);
+}
+
+$speeds: (
+    base: 0.25s,
+    open: 0.5s
+);
+
+@function speed($speed: base) {
+    @return map-get($speeds, $speed);
+}
+
+$padding: 1.25rem;
+$spacer: $padding / 2;
+$radius: 0.3rem;
+$ease: linear;
+
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+    margin: 0;
+}
