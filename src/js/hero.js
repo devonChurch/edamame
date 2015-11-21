@@ -68,28 +68,21 @@ const Graph = class {
         console.log(`Constructing Graph (${i})`);
 
         this.id = i;
-        this.dimensions = this.calcDimensions();
-        $hero.append($(`<svg id="hero__graph-${this.id}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${this.dimensions.svgWidth} ${this.dimensions.svgHeight}" preserveAspectRatio="xMidYMid meet" />`));
+        this.size = this.calcSize();
+        $hero.append($(`<svg id="hero__graph-${this.id}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${this.size.svgWidth} ${this.size.svgHeight}" preserveAspectRatio="xMidYMid meet" />`));
         this.$window;
-        this.sequence = this.id % 2;
-        this.segments = {
-
-
-        };
         this.paper = Snap(`#hero__graph-${this.id}`);
         this.path = this.paper.path(this.createPath());
         this.animatePath();
 
     }
 
-    calcDimensions() {
+    calcSize() {
 
         const svgWidth = 1024;
         const svgHeight = 500;
         const curveTotal = this.id + 4;
         const curveWidth = svgWidth / curveTotal;
-
-        console.log(svgWidth, svgHeight, curveTotal, curveWidth);
 
         return {svgWidth, svgHeight, curveTotal, curveWidth};
 
@@ -120,26 +113,21 @@ const Graph = class {
         // this way you can pass in data and determain new offset based on previous coordinates
         // also we can build the animated circles with solid x and y positions
 
-        let d = this.sequence % 2; // this.currentDirection(this.reference);
-
         this.buildM();
-        this.buildC(this.currentDirection(d));
+        this.buildC();
 
-        for (let i = 0; i < this.dimensions.curveTotal; i += 1) {
+        for (let i = 0; i < this.size.curveTotal; i += 1) {
 
-            d += 1;
-            this.buildS(i, this.currentDirection(d));
+            this.buildS(i);
 
         }
-
-        this.sequence += 1;
 
     }
 
     buildM() { // startPoint
 
         const x1 = 0;
-        const y1 = 250 + (this.id * 5); // this.offset(250, 20);
+        const y1 = 250 + (this.id * 5);
 
         this.data.x += x1;
         this.data.m = {x1, y1};
@@ -148,14 +136,14 @@ const Graph = class {
 
     }
 
-    buildC(d) { // cubicBezier
+    buildC() { // cubicBezier
 
         const x1 = 0;
         const y1 = 0;
-        const x2 = this.dimensions.curveWidth; // this.offset(70, 20);
-        const y2 = 0; // this.offset(20, 20);
+        const x2 = this.size.curveWidth;
+        const y2 = 0;
         const xC = x2 / 2;
-        const yC = this.offset(20, 20); // * d; // this.offset(-20, 20);
+        const yC = this.offset(20, 20);
 
         this.data.x += x1 + x2;
         this.data.c = {x1, y1, xC, yC, x2, y2};
@@ -164,26 +152,17 @@ const Graph = class {
 
     }
 
-    buildS(i, d) { // smoothCurve
+    buildS(i) { // smoothCurve
 
-        // const base = i > 0 ? this.data.s[i - 1].sX / 2 : this.data.c.x2 - 20; // i > 0 ? this.data.s[i - 1].x1 - this.data.s[i - 1].sX : 100;
-        const sX = this.offset(70, 20); // i > 0 ? this.data.s[i - 1].sX / 2 : 100; // this.offset(base, 20);
-        const sY = sX / 2 * i * 2; // / 2; // sX / 2 * d * i / 2; // this.offset(10, 10); //  * this.currentDirection(i);
-        const x1 = this.dimensions.curveWidth; // this.offset(100, 20);
-        const y1 = -20; // this.offset(20, 20); //  * this.currentDirection(i);
+        const sX = this.offset(70, 20);
+        const sY = sX / 2.5 * i;
+        const x1 = this.size.curveWidth;
+        const y1 = this.randomise(25, 10) * i / 2 * -1;
 
         this.data.x += x1;
         this.data.s[i] = {sX, sY, x1, y1};
 
         // return `s${sX},{sY}, ${x1},${y1}`;
-
-    }
-
-    currentDirection(d) {
-
-        // console.log(`d = ${d}`);
-
-        return d % 2 === 0 ? -1 : 1;
 
     }
 
@@ -193,9 +172,8 @@ const Graph = class {
 
     }
 
-    randomise(max) {
+    randomise(max, min = 0) {
 
-        const min = 0;
         const random =  Math.floor(Math.random() * (max - min + 1)) + min;
 
         return random;
@@ -226,7 +204,7 @@ const Graph = class {
 
     animatePath() {
 
-        const speed = 1000 * (this.id + 1); // i * 1.5 * 1000;
+        const speed = 1000 * (this.id + 1);
 
         this.path.animate(
 			{ path: this.createPath() },
