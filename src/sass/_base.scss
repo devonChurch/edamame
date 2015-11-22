@@ -4,14 +4,9 @@
 }
 
 $palette: (
-    pink: #E91E63,
-    purple: #673AB7,
-    blue: #03A9F4,
-    green: #009688,
-    yellow: #FFEB3B,
-    orange: #FF5722,
-    brown: #795548,
-    gray: #9E9E9E
+    blueDark: #178bbf,
+    blueMedium: #14b5ea,
+    clueLight: #68d8fd
 );
 
 @function palette($color) {

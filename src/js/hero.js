@@ -99,10 +99,12 @@ const Graph = class {
     resetPathData() {
 
         this.data = {
-            x: 0, // the total x position
-            m: {},
-            c: {},
-            s: []
+            x: 0, // Total x position
+            m: {}, // Starting coordinates
+            c: {}, // Initial cubic bezier curve
+            s: [], // All proceeding smooth curves
+            v: 0, // Vertical closing path
+            h: 0 // Horizontal closing path
         };
 
     }
@@ -121,6 +123,9 @@ const Graph = class {
             this.buildS(i);
 
         }
+
+        // this.buildV();
+        // this.buildH();
 
     }
 
@@ -166,6 +171,18 @@ const Graph = class {
 
     }
 
+    buildV() {
+
+        this.path.v = this.size.svgHeight;
+
+    }
+
+    buildH() {
+
+        this.path.h = 0;
+
+    }
+
     offset(base, variance) {
 
         return this.randomise(1) === 0 ? base + this.randomise(variance) : base - this.randomise(variance);
@@ -197,6 +214,9 @@ const Graph = class {
             svg += `s${p.sX},${p.sY}, ${p.x1},${p.y1}`; // buildS();
 
         }
+
+        console.log(this.size.svgHeight);
+        svg += `V${this.size.svgHeight} H${0} z`;
 
         return svg;
 

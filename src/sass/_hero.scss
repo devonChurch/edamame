@@ -4,17 +4,30 @@
     position: relative;
 
     &__graph {
-        height: auto;
+        // height: auto;
         left: 0;
         position: absolute;
-        width: 100%;
+        // width: 100%;
         top: 0;
 
         path {
-            stroke-width: 1;
-            stroke: #000;
+            stroke-width: 0.5;
+            stroke: palette(blueDark);
             stroke-linecap: round;
-            fill: none; // rgba(black, 0.25);
+            fill: rgba(palette(blueDark), 0.1);
+        }
+    }
+
+    circle {
+        position: relative;
+
+        &:after {
+            bottom: 100%;
+            content: '123';
+            display: block;
+            left: 50%;
+            position: absolute;
+            transform: translateX(-50%);
         }
     }
 }
