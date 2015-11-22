@@ -7,8 +7,6 @@ const Hero = class {
 
     constructor() {
 
-        console.log('Constructing Hero');
-
         this.$window = $(window);
         this.$hero = $('#hero');
         // this.listeners();
@@ -18,8 +16,6 @@ const Hero = class {
     }
 
     listeners() {
-
-        console.log('Hero => listeners()');
 
         this.$window.on('resize', () => {
 
@@ -35,8 +31,6 @@ const Hero = class {
 
     graphInstances() {
 
-        console.log('Hero => graphInstances()');
-
         this.graphs = [];
 
         for (let i = 0; i < 3; i += 1) {
@@ -48,8 +42,6 @@ const Hero = class {
     }
 
     testViewPort() {
-
-        console.log('Hero => testViewPort()');
 
     }
 
@@ -65,22 +57,35 @@ const Graph = class {
 
     constructor(i, $window, $hero) {
 
-        console.log(`Constructing Graph (${i})`);
-
         this.id = i;
         this.size = this.calcSize();
-        $hero.append($(`<svg id="hero__graph-${this.id}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${this.size.svgWidth} ${this.size.svgHeight}" preserveAspectRatio="xMidYMid meet" />`));
-        this.$window;
+        this.speed = 1000 * (this.id + 1);
+
+        this.$hero = $hero;
+        this.$hero.append($(`<svg id="hero__graph-${this.id}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${this.size.svgWidth} ${this.size.svgHeight}" preserveAspectRatio="xMidYMid meet" />`));
+
         this.paper = Snap(`#hero__graph-${this.id}`);
         this.path = this.paper.path(this.createPath());
-        this.animatePath();
+
+        this.$counter = this.buildCounter();
+        this.$counterText = this.$counter.find('.hero__counter-text');
+        this.positionCounter({init: true});
+
+        setTimeout(() => {
+
+            this.cycleCounterText({init: true});
+            this.animateSequence();
+            this.positionCounter();
+
+        }, 0);
+
 
     }
 
     calcSize() {
 
         const svgWidth = 1024;
-        const svgHeight = 500;
+        const svgHeight = 300;
         const curveTotal = this.id + 4;
         const curveWidth = svgWidth / curveTotal;
 
@@ -99,12 +104,11 @@ const Graph = class {
     resetPathData() {
 
         this.data = {
-            x: 0, // Total x position
+            x: 0, // Current total x position
+            y: 0, // Current total y position
             m: {}, // Starting coordinates
             c: {}, // Initial cubic bezier curve
-            s: [], // All proceeding smooth curves
-            v: 0, // Vertical closing path
-            h: 0 // Horizontal closing path
+            s: [] // All proceeding smooth curves
         };
 
     }
@@ -118,23 +122,21 @@ const Graph = class {
         this.buildM();
         this.buildC();
 
-        for (let i = 0; i < this.size.curveTotal; i += 1) {
+        for (let i = 0; i < this.size.curveTotal - 1; i += 1) {
 
             this.buildS(i);
 
         }
-
-        // this.buildV();
-        // this.buildH();
 
     }
 
     buildM() { // startPoint
 
         const x1 = 0;
-        const y1 = 250 + (this.id * 5);
+        const y1 = (this.size.svgHeight / 3 * 2) + (this.id * 5);
 
         this.data.x += x1;
+        this.data.y += y1;
         this.data.m = {x1, y1};
 
         // return `M${x1},${y1}`;
@@ -151,6 +153,7 @@ const Graph = class {
         const yC = this.offset(20, 20);
 
         this.data.x += x1 + x2;
+        this.data.y += y1 + y2;
         this.data.c = {x1, y1, xC, yC, x2, y2};
 
         // return `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
@@ -164,22 +167,11 @@ const Graph = class {
         const x1 = this.size.curveWidth;
         const y1 = this.randomise(25, 10) * i / 2 * -1;
 
-        this.data.x += x1;
+        this.data.x += i < this.size.curveTotal - 2 ? x1 : 0;
+        this.data.y += i < this.size.curveTotal - 2 ? y1 : 0;
         this.data.s[i] = {sX, sY, x1, y1};
 
         // return `s${sX},{sY}, ${x1},${y1}`;
-
-    }
-
-    buildV() {
-
-        this.path.v = this.size.svgHeight;
-
-    }
-
-    buildH() {
-
-        this.path.h = 0;
 
     }
 
@@ -215,22 +207,122 @@ const Graph = class {
 
         }
 
-        console.log(this.size.svgHeight);
+        // Close off path (so that we can add in a fill)
         svg += `V${this.size.svgHeight} H${0} z`;
 
         return svg;
 
     }
 
-    animatePath() {
+    buildCounter() {
 
-        const speed = 1000 * (this.id + 1);
+        const x = 0;
+        const y = 0;
+        const bigCircle = this.paper.circle(x, y, 30).attr('class', 'hero__counter-wrapper');
+        const smallCircle = this.paper.circle(x, y, 5).attr('class', 'hero__counter-point');
+        const number = this.invertNumber();
+        const text = this.paper.group(this.paper.text(x - 12, y - 12, number).attr('class', 'hero__counter-text'));
+
+        this.paper.group(bigCircle, smallCircle, text).attr('class', 'hero__counter');
+
+        return this.$hero.find(`#hero__graph-${this.id} .hero__counter`);
+
+    }
+
+    positionCounter({init} = {}) {
+
+        const duration = init ? 0 : this.speed  / 1000;
+        const x = this.data.x;
+        const y = this.data.y;
+
+        this.$counter.css({
+            'transform': `translate(${x}px, ${y}px)`,
+            'transition-duration': `${duration}s`
+        });
+
+    }
+
+    cycleCounterText() {
+
+        const current = parseInt(this.$counterText.text(), 10);
+        console.log(current);
+        const latest = this.invertNumber();
+        const numbers = this.generateNumbers(current, latest);
+
+        this.$counterText.text(latest);
+        this.scaleNumber();
+
+    }
+
+    invertNumber(number = this.data.y) {
+
+        console.log(`number = ${number}`);
+
+        return (this.size.svgHeight - number); // * 3;
+
+    }
+
+    scaleNumber() {
+
+        // Exponential growth
+
+        const length = this.invertNumber() / this.size.svgHeight * 100;
+        let scale = 1;
+
+        for (let i = 0; i < length; i += 1) {
+
+            scale *= 1.035;
+
+        }
+
+        scale /= 3.5;
+
+        console.log(`scale = ${scale}`);
+
+        const duration = this.speed / 1000;
+
+        this.$counterText.closest('g').css({
+            'transform': `scale(${scale})`,
+            'transition-duration': `${duration}s`
+        });
+
+    }
+
+    generateNumbers(current, latest) {
+
+        const length = Math.ceil(this.speed / 200);
+        const difference = current > latest ? current - latest : latest - current;
+        const direction = current > latest ? -1 : 1;
+        const increment = difference / length * direction;
+        const numbers = [current];
+
+        console.log(`current    : ${current}`);
+        console.log(`latest     : ${latest}`);
+        console.log(`length     : ${length}`);
+        console.log(`difference : ${difference}`);
+        console.log(`increment  : ${increment}`);
+
+        for (let i = 1; i < length + 1; i += 1) {
+
+            numbers[i] = numbers[i - 1] += increment;
+
+        }
+
+        console.log(numbers);
+
+    }
+
+    animateSequence() {
 
         this.path.animate(
 			{ path: this.createPath() },
-			speed,
-			mina.easeinout,
-			() => { this.animatePath(); }
+			this.speed,
+			mina.linear, // mina.easeinout,
+			() => {
+                this.animateSequence();
+                this.positionCounter();
+                this.cycleCounterText();
+            }
         );
 
     }
@@ -312,7 +404,7 @@ var hero = (function() {
 			paper = createPaper(i);
 			$smoke = $('#smoke-' + i);
 			path = createPath(i, paper);
-			animatePath(i, $smoke, path);
+			animateSequence(i, $smoke, path);
 			createInstance(i += 1);
 
 		}, delay);
@@ -345,7 +437,7 @@ var hero = (function() {
 
 	},
 
-	animatePath = function (i, $smoke, path) {
+	animateSequence = function (i, $smoke, path) {
 
 		var scale = Math.floor(Math.random() * 2) + 1,
 			speed = Math.floor(Math.random() * 5) + 5,

@@ -1,7 +1,9 @@
 .hero {
-    background: skyblue;
-    height: 500px;
+    background-image: linear-gradient(to bottom, palette(blueLight), palette(blueMedium));
+    height: 0;
+    padding-top: 300 / 1024 * 100%;
     position: relative;
+    width: 100%;
 
     &__graph {
         // height: auto;
@@ -11,23 +13,34 @@
         top: 0;
 
         path {
-            stroke-width: 0.5;
+            fill: rgba(palette(blueDark), 0.2);
+            stroke-width: 1;
             stroke: palette(blueDark);
             stroke-linecap: round;
-            fill: rgba(palette(blueDark), 0.1);
+
         }
     }
 
-    circle {
-        position: relative;
+    &__counter {
+        transition-timing-function: linear;
 
-        &:after {
-            bottom: 100%;
-            content: '123';
-            display: block;
-            left: 50%;
+        &-wrapper {
+            fill: none;
+        }
+
+        &-point {
+            fill: palette(blueMedium);
+            stroke-width: 1;
+            stroke: palette(blueDark);
+        }
+
+        &-text {
+            // display: none;
+            font-size: 30px;
             position: absolute;
-            transform: translateX(-50%);
+            text-align: center;
+            // transform: translateX(-12px);
+            transform-origin: center bottom;
         }
     }
 }
