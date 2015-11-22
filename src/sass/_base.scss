@@ -1,0 +1,40 @@
+@font-face {
+    font-family: 'BLOKKNeue-Regular';
+    src:  url('/font/BLOKKNeue-Regular.woff') format('woff');
+}
+
+$palette: (
+    blueDark: #178bbf,
+    blueMedium: #14b5ea,
+    blueLight: #68d8fd
+);
+
+@function palette($color) {
+    @return map-get($palette, $color);
+}
+
+$speeds: (
+    base: 0.25s,
+    open: 0.5s
+);
+
+@function speed($speed: base) {
+    @return map-get($speeds, $speed);
+}
+
+$padding: 1.25rem;
+$spacer: $padding / 2;
+$radius: 0.3rem;
+$ease: linear;
+
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+    margin: 0;
+}
