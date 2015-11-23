@@ -35,12 +35,17 @@
         }
 
         &-text {
-            // display: none;
-            font-size: 30px;
-            position: absolute;
-            text-align: center;
-            // transform: translateX(-12px);
-            transform-origin: center bottom;
+            // // display: none;
+            // font-size: 30px;
+            // position: absolute;
+            // text-align: center;
+            // // transform: translateX(-12px);
+            // transform-origin: center bottom;
         }
+    }
+
+    &__number {
+        font-family: Arial;
+        // transform: translateX(-50%);
     }
 }
