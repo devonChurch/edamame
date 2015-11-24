@@ -47,5 +47,13 @@
     &__number {
         font-family: Arial;
         // transform: translateX(-50%);
+
+        text {
+            // opacity: 0;
+
+            &:first-of-type {
+                // opacity: 1;
+            }
+        }
     }
 }
