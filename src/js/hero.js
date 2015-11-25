@@ -1,116 +1,284 @@
 const $ = require('jquery');
-require('gsap'); /* global TweenMax TimelineMax */
+require('gsap'); /* global TweenMax Linear */
 require('snapsvg'); /* global Snap, mina */
-// console.log(Snap);
 
-const Hero = class {
+// Hero
+    // Graph
+        // Spline
+        // Counter
 
-    constructor() {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 
-        this.$window = $(window);
-        this.$hero = $('#hero');
-        // this.listeners();
-        this.graphInstances();
+ .o88b.  .d88b.  db    db d8b   db d888888b d88888b d8888b.
+d8P  Y8 .8P  Y8. 88    88 888o  88 `~~88~~' 88'     88  `8D
+8P      88    88 88    88 88V8o 88    88    88ooooo 88oobY'
+8b      88    88 88    88 88 V8o88    88    88~~~~~ 88`8b
+Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
+ `Y88P'  `Y88P'  ~Y8888P' VP   V8P    YP    Y88888P 88   YD
 
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+ class Counter {
+
+    constructor (Graph) {
+
+        console.log(`Constructing Counter| id = ${Graph.i}`);
+
+        this.Graph = Graph;
+        this.size = 3; // what to name???
+        this.paper = this.Graph.generatePaper('counter');
+        this.$wrapper = this.buildCounter();
+        this.$number = this.$wrapper.find('> .hero__number');
+        this.digits = this.referenceDigits();
+        this.prepDigits();
 
     }
 
-    listeners() {
+    buildCounter() {
 
-        this.$window.on('resize', () => {
+        const x = 0;
+        const y = 0;
+        const bigCircle = this.paper.circle(x, y, 30).attr('class', 'hero__counter-alignment');
+        const smallCircle = this.paper.circle(x, y, 5).attr('class', 'hero__counter-point');
+        const numbers = this.buildNumbers();
+        this.paper.group(bigCircle, smallCircle, numbers).attr('class', 'hero__counter-anchor');
+        const $wrapper = this.Graph.Hero.$wrapper.find(`#hero__counter-${this.Graph.i} .hero__counter-anchor`);
 
-            this.graphInstances();
-
-        }).on('scroll', () => {
-
-            this.testViewPort();
-
-        }).resize().scroll();
+        return $wrapper;
 
     }
 
-    graphInstances() {
+    referenceDigits() {
 
-        this.graphs = [];
+        const $strips = this.$number.find('> g');
+        const digits = [];
 
-        for (let i = 0; i < 3; i += 1) {
+        for (let i = 0; i < this.size; i += 1) {
 
-            this.graphs[i] = new Graph(i, this.$window, this.$hero);
+            digits[i] = {
+                $dom: $strips.eq(i).find('text'),
+                current: null
+            };
+
+        }
+
+        return digits;
+
+    }
+
+    prepDigits() {
+
+        for (let i = 0; i < this.digits.length; i += 1) {
+
+            TweenMax.set(this.digits[i].$dom, {attr: {opacity: 0}});
 
         }
 
     }
 
-    testViewPort() {
+    buildNumbers() {
+
+        /*
+
+        wrapper
+         --> number
+              --> strip
+                    --> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+
+        */
+
+        const numbers = this.paper.g().attr({
+            'class': 'hero__number',
+            'transform': 'translate(-19-14)'
+        });
+
+        for (let i = 0; i < 3; i += 1) {
+
+            const strip = this.paper.g();
+
+            for (let j = 0; j < 10; j += 1) {
+
+                const x = 12 * i;
+                const y = 0;
+                const text = this.paper.text(x, y, `${j}`);
+
+                strip.add(text);
+
+            }
+
+            numbers.add(strip);
+
+        }
+
+        return numbers;
 
     }
 
-};
+    positionCounter({init} = {}) {
 
-//
-//
-//
-//
-//
+        const speed = init ? 0 : this.Graph.speed / 1000;
+        const x = this.Graph.x;
+        const y = this.Graph.y;
 
-const Graph = class {
-
-    constructor(i, $window, $hero) {
-
-        this.id = i;
-        this.size = this.calcSize();
-        this.speed = 1000 * (this.id + 1);
-
-        this.$hero = $hero;
-        this.$hero.append($(`<svg id="hero__graph-${this.id}" class="hero__graph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${this.size.svgWidth} ${this.size.svgHeight}" preserveAspectRatio="xMidYMid meet" />`));
-
-
-
-        this.paper = Snap(`#hero__graph-${this.id}`);
-        this.counter = this.buildCounter();
-        this.graph = this.paper.path(this.createPath());
-
-        TweenMax.set(this.counter.dom.find('text'), {attr: {opacity: 0}});
-
-
-        // this.$counterText = this.$counter.find('.hero__counter-text');
-        this.positionCounter({init: true});
-
-        setTimeout(() => {
-
-            this.animateSequence();
-            this.positionCounter();
-            this.cycleCounterText({init: true});
-
-        }, 0);
-
+        TweenMax.to(this.$wrapper, speed, {x: x, y: y, transformOrigin:'center center', ease: Linear.easeNone});
 
     }
 
-    calcSize() {
+    cycleCounterText() {
 
-        const svgWidth = 1024;
-        const svgHeight = 300;
-        const curveTotal = this.id + 4;
-        const curveWidth = svgWidth / curveTotal;
+        // Get the current 3 digit number
+        // if < 3 digits prepent a 0 on the front
+        // if > 3 digits === 999
+        // split the number into the array
+        // transition each number strip to their new value
 
-        return {svgWidth, svgHeight, curveTotal, curveWidth};
+        this.invertNumber();
+        this.roundNumber();
+        this.inspectNumber();
+        this.scaleNumber();
+        this.splitNumber();
+        this.swapNumber();
 
     }
 
-    createPath() {
+    roundNumber(number = this.Graph.y) {
 
-        this.resetPathData();
-        this.generatePathData();
+        this.Graph.y = Math.round(number);
+
+    }
+
+    invertNumber(number = this.Graph.y) {
+
+        this.Graph.y = this.Graph.Hero.size.height - number / 2;
+
+    }
+
+
+    inspectNumber(number = this.Graph.y) {
+
+        if (number > 999) {
+
+            number = 999;
+
+        } else if (number < 100) {
+
+            const length = 3 - `${number}`.length;
+
+            for (let i = 0; i < length; i += 1) {
+
+                number = `0${number}`;
+
+            }
+
+            number = parseInt(number, 10);
+
+        }
+
+        this.Graph.y = number;
+
+    }
+
+    splitNumber(number = this.Graph.y) {
+
+        number = `${number}`.split('');
+
+        for (let i = 0; i < number.length; i += 1) {
+
+            this.digits[i].latest = parseInt(number[i]);
+
+        }
+
+        this.Graph.y = number;
+
+    }
+
+    swapNumber() {
+
+        const speed = this.Graph.speed / 1000;
+
+        for (let i = 0; i < this.size; i += 1) {
+
+            const current = this.digits[i].current;
+            const latest = this.digits[i].latest;
+
+            if (current !== latest) {
+
+                const $current = this.digits[i].$dom.eq(current);
+                const $latest = this.digits[i].$dom.eq(latest);
+
+                TweenMax.fromTo($current, speed / 2, {attr: {opacity: 1, y: 0}}, {attr: {opacity: 0, y: -10}});
+                TweenMax.fromTo($latest, speed, {attr: {opacity: 0, y: 10}}, {attr: {opacity: 1, y: 0}});
+
+                this.digits[i].current = latest;
+
+            }
+
+        }
+
+    }
+
+    scaleNumber() {
+
+        // Exponential growth
+
+        const speed = this.Graph.speed / 1000;
+        const length = this.Graph.y / 1.5;
+        let scale = 1;
+
+        for (let i = 0; i < length; i += 1) {
+
+            scale *= 1.035;
+
+        }
+
+        TweenMax.to(this.$number, speed, {scale: scale / 100, transformOrigin: 'center center'});
+
+    }
+
+}
+
+// Hero
+    // Graph
+        // Spline
+        // Counter
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+
+.d8888. d8888b. db      d888888b d8b   db d88888b
+88'  YP 88  `8D 88        `88'   888o  88 88'
+`8bo.   88oodD' 88         88    88V8o 88 88ooooo
+  `Y8b. 88~~~   88         88    88 V8o88 88~~~~~
+db   8D 88      88booo.   .88.   88  V888 88.
+`8888Y' 88      Y88888P Y888888P VP   V8P Y88888P
+
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+class Spline {
+
+    constructor (Graph) {
+
+        console.log(`Constructing Spline| id = ${Graph.i}`);
+
+        this.Graph = Graph;
+        this.paper = this.Graph.generatePaper('spline');
+        this.svg = this.paper.path(this.createSpline());
+
+    }
+
+    createSpline() {
+
+        this.resetSplineData();
+        this.generateSplineData();
         return this.generateSvgCode();
 
     }
 
-    resetPathData() {
+    resetSplineData() {
+
+        this.Graph.x = 0;
+        this.Graph.y = 0;
 
         this.data = {
-            x: 0, // Current total x position
-            y: 0, // Current total y position
             m: {}, // Starting coordinates
             c: {}, // Initial cubic bezier curve
             s: [] // All proceeding smooth curves
@@ -118,7 +286,7 @@ const Graph = class {
 
     }
 
-    generatePathData() {
+    generateSplineData() {
 
         // generate path data in object format THEN build spline
         // this way you can pass in data and determain new offset based on previous coordinates
@@ -127,7 +295,7 @@ const Graph = class {
         this.buildM();
         this.buildC();
 
-        for (let i = 0; i < this.size.curveTotal - 1; i += 1) {
+        for (let i = 0; i < this.Graph.size.total - 1; i += 1) {
 
             this.buildS(i);
 
@@ -138,10 +306,10 @@ const Graph = class {
     buildM() { // startPoint
 
         const x1 = 0;
-        const y1 = (this.size.svgHeight / 3 * 2) + (this.id * 5);
+        const y1 = (this.Graph.Hero.size.height / 3 * 2) + (this.Graph.i * 5);
 
-        this.data.x += x1;
-        this.data.y += y1;
+        this.Graph.x += x1;
+        this.Graph.y += y1;
         this.data.m = {x1, y1};
 
         // return `M${x1},${y1}`;
@@ -152,13 +320,13 @@ const Graph = class {
 
         const x1 = 0;
         const y1 = 0;
-        const x2 = this.size.curveWidth;
+        const x2 = this.Graph.size.width;
         const y2 = 0;
         const xC = x2 / 2;
         const yC = this.offset(20, 20);
 
-        this.data.x += x1 + x2;
-        this.data.y += y1 + y2;
+        this.Graph.x += x1 + x2;
+        this.Graph.y += y1 + y2;
         this.data.c = {x1, y1, xC, yC, x2, y2};
 
         // return `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
@@ -169,11 +337,11 @@ const Graph = class {
 
         const sX = this.offset(70, 20);
         const sY = sX / 2.5 * i;
-        const x1 = this.size.curveWidth;
+        const x1 = this.Graph.size.width;
         const y1 = this.randomise(25, 10) * i / 2 * -1;
 
-        this.data.x += i < this.size.curveTotal - 2 ? x1 : 0;
-        this.data.y += i < this.size.curveTotal - 2 ? y1 : 0;
+        this.Graph.x += i < this.Graph.size.total - 2 ? x1 : 0;
+        this.Graph.y += i < this.Graph.size.total - 2 ? y1 : 0;
         this.data.s[i] = {sX, sY, x1, y1};
 
         // return `s${sX},{sY}, ${x1},${y1}`;
@@ -213,447 +381,180 @@ const Graph = class {
         }
 
         // Close off path (so that we can add in a fill)
-        svg += `V${this.size.svgHeight} H${0} z`;
+        svg += `V${this.Graph.Hero.size.height} H${0} z`;
 
         return svg;
 
     }
 
-    buildCounter() {
+}
 
-        const x = 0;
-        const y = 0;
-        const bigCircle = this.paper.circle(x, y, 30).attr('class', 'hero__counter-wrapper');
-        const smallCircle = this.paper.circle(x, y, 5).attr('class', 'hero__counter-point');
-        const numbers = this.buildNumbers();
-        this.paper.group(bigCircle, smallCircle, numbers).attr('class', 'hero__counter');
-        const $counter = this.$hero.find(`#hero__graph-${this.id} .hero__counter`);
+// Hero
+    // Graph
+        // Spline
+        // Counter
 
-        // return {
-        //     dom: $counter,
-        //     digits: [],
-        //
-        // };
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 
-        return {
-            dom: $counter,
-            digits: (function () {
+ d888b  d8888b.  .d8b.  d8888b. db   db
+88' Y8b 88  `8D d8' `8b 88  `8D 88   88
+88      88oobY' 88ooo88 88oodD' 88ooo88
+88  ooo 88`8b   88~~~88 88~~~   88~~~88
+88. ~8~ 88 `88. 88   88 88      88   88
+ Y888P  88   YD YP   YP 88      YP   YP
 
-                console.log('building numbers....');
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-                const digits = [];
-                const $digits = $counter.find('> .hero__number');
+class Graph {
 
-                for (let i = 0; i < 3; i += 1) {
+    constructor (Hero, i) {
 
-                    digits[i] = {
-                        dom: $digits.eq(i),
-                        current: null
-                    };
+        console.log('Constructing Graph');
 
-                }
+        this.Hero = Hero;
 
-                return digits;
+        this.i = i;
+        this.size = this.calcSize();
+        this.x = 0;
+        this.y = 0;
+        this.speed = 1000 * (this.i + 1);
 
-            })()
+        this.Spline = new Spline(this);
+        this.Counter = new Counter(this);
 
-        };
+        // Prep
+        this.Counter.positionCounter({init: true});
+        this.Counter.cycleCounterText({init: true});
 
-    }
-
-    buildNumbers() {
-
-        /*
-
-        number
-          --> number-strip
-                --> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-
-        */
-
-        const numbers = this.paper.g().attr({
-            'class': 'hero__number',
-            'transform': 'translate(-19-14)'
-        });
-
-        for (let i = 0; i < 3; i += 1) {
-
-            const strip = this.paper.g(); // .attr('class', `hero__number-strip-${i}`);
-
-            for (let j = 0; j < 10; j += 1) {
-
-                const x = 14 * i;
-                const y = 0; // -18 * j;
-                const text = this.paper.text(x, y, `${j}`); // .attr('opacity', '0'); // .attr('class', `hero__number-strip-${i}--${j}`);
-
-                strip.add(text);
-
-            }
-
-            numbers.add(strip);
-
-        }
-
-        return numbers;
+        setTimeout(() => {
+            this.animateCallback();
+        }, 100);
 
     }
 
-    positionCounter({init} = {}) {
+    calcSize() {
 
-        const duration = init ? 0 : this.speed  / 1000;
-        const x = this.data.x;
-        const y = this.data.y;
+        const total = this.i + 4;
+        const width = this.Hero.size.width / total;
 
-        this.counter.dom.css({
-            'transform': `translate(${x}px, ${y}px)`,
-            'transition-duration': `${duration}s`
-        });
+        return {total, width};
 
     }
 
-    cycleCounterText() {
+    generatePaper(type) {
 
-        // Get the current 3 digit number
-        // if < 3 digits prepent a 0 on the front
-        // if > 3 digits === 999
-        // split the number into the array
-        // transition each number strip to their new value
+        this.Hero.$wrapper.append($(`
+            <svg id="hero__${type}-${this.i}"
+                 class="hero__${type} hero__svg"
+                 xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 ${this.Hero.size.width} ${this.Hero.size.height}"
+                 preserveAspectRatio="xMidYMid meet" />`));
 
-        this.roundNumber();
-        this.invertNumber();
-        this.inspectnumber();
-        this.splitNumbers();
-        this.swapNumbers();
-
-        console.log('After number augmentation');
-        console.log(this.data.y);
-
-        // const current = parseInt(this.$counterText.text(), 10);
-        // console.log(current);
-        // const latest = this.invertNumber();
-        // const numbers = this.generateNumbers(current, latest);
-        //
-        // this.$counterText.text(latest);
-        // this.scaleNumber();
+        return Snap(`#hero__${type}-${this.i}`);
 
     }
-
-    roundNumber(number = this.data.y) {
-
-        this.data.y = Math.round(number);
-
-    }
-
-    invertNumber(number = this.data.y) {
-
-        this.data.y = this.size.svgHeight - number; // * 3;
-
-    }
-
-
-    inspectnumber(number = this.data.y) {
-
-        console.log(number);
-
-        if (number > 999) {
-
-            console.log('greater than 3 digits');
-
-            number = 999;
-
-        } else if (number < 100) {
-
-            console.log('less than 3 digits');
-
-            const length = 3 - `${number}`.length;
-
-            for (let i = 0; i < length; i += 1) {
-
-                number = `0${number}`;
-
-            }
-
-        }
-
-        this.data.y = `${number}`;
-
-    }
-
-    splitNumbers(number = this.data.y) {
-
-        // console.log(this.data.y.trim().length);
-        // console.log(number.trim().length);
-        console.log(number.length);
-        console.log(this.counter);
-
-        number = number.split('');
-
-        for (let i = 0; i < number.length; i += 1) {
-
-            this.counter.digits[i].latest = parseInt(number[i]);
-
-        }
-
-        this.data.y = number;
-
-    }
-
-    //
-    //
-    //
-    //
-    //
-    //
-
-
-    swapNumbers() {
-
-        console.log('');
-        console.log('swapNumbers()');
-
-        const speed = this.speed / 1000;
-        const $strips = this.counter.dom.find('.hero__number > g');
-
-        for (let i = 0; i < 3; i += 1) {
-
-            const current = this.counter.digits[i].current;
-            const latest = this.counter.digits[i].latest;
-
-            console.log(this.data.y);
-            console.log(`${current} | ${latest}`);
-
-            if (current !== latest) {
-
-                console.log('ANIMATE!');
-
-                const $digits = $strips.eq(i).find('text');
-                const $current = $digits.eq(current);
-                const $latest = $digits.eq(latest);
-
-                console.log($current);
-                console.log($latest);
-
-                // TweenMax.to($current, speed, {opacity: 0, y: -20});
-                // TweenMax.fromTo($latest, speed, {opacity: 0, y: 20}, {opacity: 1, y: 0});
-
-                // TweenMax.to($current, speed, {attr: {opacity: 0, y: -20}});
-                TweenMax.fromTo($current, speed / 2, {attr: {opacity: 1, y: 0}}, {attr: {opacity: 0, y: -10}});
-                TweenMax.fromTo($latest, speed, {attr: {opacity: 0, y: 10}}, {attr: {opacity: 1, y: 0}});
-
-
-                // 'transform': `translate(${x}px, ${y}px)`,
-
-                this.counter.digits[i].current = latest;
-
-            }
-
-        }
-
-        console.log('');
-
-    }
-
-    scaleNumber() {
-
-        // Exponential growth
-
-        const length = this.invertNumber() / this.size.svgHeight * 100; // instead of dividing at the end just times by a higher number to lessen the length?
-        let scale = 1;
-
-        for (let i = 0; i < length; i += 1) {
-
-            scale *= 1.035;
-
-        }
-
-        scale /= 3.5;
-
-        console.log(`scale = ${scale}`);
-
-        const duration = this.speed / 1000;
-
-        this.$counterText.closest('g').css({
-            'transform': `scale(${scale})`,
-            'transition-duration': `${duration}s`
-        });
-
-    }
-
-    // generateNumbers(current, latest) {
-    //
-    //     const length = Math.ceil(this.speed / 200);
-    //     const difference = current > latest ? current - latest : latest - current;
-    //     const direction = current > latest ? -1 : 1;
-    //     const increment = difference / length * direction;
-    //     const numbers = [current];
-    //
-    //     console.log(`current    : ${current}`);
-    //     console.log(`latest     : ${latest}`);
-    //     console.log(`length     : ${length}`);
-    //     console.log(`difference : ${difference}`);
-    //     console.log(`increment  : ${increment}`);
-    //
-    //     for (let i = 1; i < length + 1; i += 1) {
-    //
-    //         numbers[i] = numbers[i - 1] += increment;
-    //
-    //     }
-    //
-    //     console.log(numbers);
-    //
-    // }
 
     animateSequence() {
 
-        this.graph.animate(
-			{ path: this.createPath() },
+        this.Spline.svg.animate(
+			{ path: this.Spline.createSpline() },
 			this.speed,
 			mina.linear, // mina.easeinout,
 			() => {
-                this.animateSequence();
-                this.positionCounter();
-                this.cycleCounterText();
+                this.animateCallback();
             }
         );
 
     }
 
-};
+    animateCallback() {
+        this.animateSequence();
+        this.Counter.positionCounter();
+        this.Counter.cycleCounterText();
+    }
 
-module.exports = new Hero();
+}
 
-/*
+// Hero
+    // Graph
+        // Spline
+        // Counter
 
-const Hero = class {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+
+db   db d88888b d8888b.  .d88b.
+88   88 88'     88  `8D .8P  Y8.
+88ooo88 88ooooo 88oobY' 88    88
+88~~~88 88~~~~~ 88`8b   88    88
+88   88 88.     88 `88. `8b  d8'
+YP   YP Y88888P 88   YD  `Y88P'
+
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+class Hero {
 
     constructor() {
 
-        this.$hero = $('#hero');
-        this.paper = this.createPaper();
+        this.$window = $(window);
+        this.$wrapper = $('#hero');
+        this.size = this.calcSize();
 
-        const pathData = [
-            'M5,0c-13.5,42.6,17.1,61.1,5,100C10,100-8.1,24.1,5,0z',
-            'M10,0c18.8,83.2,5.4,83.8,0,100C10,100,19.7,57.5,10,0z'
-        ];
-
-        const path = this.paper.path(pathData[0]);
-
-        path.animate(
-			{ path: pathData[1] },
-			1000,
-			mina.easeinout,
-			() => { console.log('Finished animation'); });
+        this.graphInstances();
 
     }
 
-    createPaper() {
+    // listeners() {
+    //
+    //     this.$window.on('resize', () => {
+    //
+    //         this.graphInstances();
+    //
+    //     }).on('scroll', () => {
+    //
+    //         this.testViewPort();
+    //
+    //     }).resize().scroll();
+    //
+    // }
 
-        console.log('Creating paper');
+    calcSize() {
 
-        const id = 'sequence--1';
-        const $svg = $(`<svg id="${id}" />`);
-        this.$hero.append($svg);
+        const height = 300;
+        const width = 1024;
 
-        return Snap(`#${id}`);
+        return {height, width};
 
     }
 
+    graphInstances() {
 
+        this.Graphs = [];
 
+        for (let i = 0; i < 3; i += 1) {
 
-};
+            this.Graphs[i] = new Graph(this, i);
 
-*/
+        }
 
-/*
+    }
 
-var hero = (function() {
+    // testViewPort() {
+    //
+    // }
 
-	var init = function() {
+}
 
-		if (!Snap || !Modernizr.svg) { createFallback(); }
-		else { createInstance(0); }
+module.exports = new Hero();
 
-	},
-
-	$body = $('body'),
-
-	createFallback = function () {
-
-		$body.prepend('<div class="smoke-fallback"></div>');
-
-	},
-
-	createInstance = function (i) {
-
-		var delay = Math.random() * 1000,
-			paper, path, $smoke;
-
-		setTimeout(function () {
-
-			$body.prepend('<svg id="smoke-' + i + '"></svg>');
-			paper = createPaper(i);
-			$smoke = $('#smoke-' + i);
-			path = createPath(i, paper);
-			animateSequence(i, $smoke, path);
-			createInstance(i += 1);
-
-		}, delay);
-
-	},
-
-	pathData = [
-		'M5,0c-13.5,42.6,17.1,61.1,5,100C10,100-8.1,24.1,5,0z',
-		'M10,0c18.8,83.2,5.4,83.8,0,100C10,100,19.7,57.5,10,0z'
-	],
-
-	createPaper = function (i) {
-
-		var blur = Math.random() + 1,
-			opacity = Math.random() / 2;
-
-		paper = Snap('#smoke-' + i);
-		paper.attr({
-			fill: paper.gradient('l(0, 0, 1, 1)rgba(0, 0, 0, ' + opacity + ')-rgba(0, 0, 0, 0)'),
-			filter: paper.filter(Snap.filter.blur(1 * blur, 3 * blur))
-		});
-
-		return paper;
-
-	},
-
-	createPath = function (i, paper) {
-
-		return paper.path(pathData[i % 2]);
-
-	},
-
-	animateSequence = function (i, $smoke, path) {
-
-		var scale = Math.floor(Math.random() * 2) + 1,
-			speed = Math.floor(Math.random() * 5) + 5,
-			y = Math.floor(Math.random() * 30) + 20;
-
-		$smoke.css({
-			'opacity': '0',
-			'transform': 'scale(' + scale + ') translateY(-' + y + 'px)',
-			'transition-duration': speed + 's'
-		});
-
-		path.animate(
-			{ path: pathData[i % 2] },
-			speed * 1000,
-			mina.easeinout,
-			function () { $smoke.remove(); });
-
-	};
-
-	return {
-
-		init: init()
-
-	};
-
-})();
-
-*/
+// { // Create hero instances...
+//
+//     const hero = $('.hero');
+//     const instances = [];
+//
+//     for (let i = 0; i < hero.length; i += 1) {
+//
+//         instances[i] = new Hero();
+//
+//     }
+//
+// }
