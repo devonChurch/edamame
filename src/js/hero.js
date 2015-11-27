@@ -1,5 +1,5 @@
 const $ = require('jquery');
-require('gsap'); /* global TweenMax Linear */
+require('gsap'); /* global TweenMax, TimelineMax, Linear */
 require('snapsvg'); /* global Snap, mina */
 
 // Hero
@@ -26,11 +26,68 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
         this.Graph = Graph;
         this.size = 3; // what to name???
+        this.segment = this.randomiseSegment();
+        this.relevance = 0;
         this.paper = this.Graph.generatePaper('counter');
         this.$wrapper = this.buildCounter();
         this.$number = this.$wrapper.find('> .hero__number');
+        this.$point = this.$wrapper.find('> .hero__counter-point');
         this.digits = this.referenceDigits();
-        this.prepDigits();
+        // this.prepElements();
+        this.obscure = this.obscureCounter();
+
+    }
+
+    randomiseSegment() {
+
+        const max = this.Graph.size.total - 2;
+
+        return this.Graph.randomise(max);
+
+    }
+
+    querySegment() {
+
+        let latest;
+
+        do {
+
+            latest = this.randomiseSegment();
+
+        } while (this.segment === latest);
+
+        this.segment = latest;
+
+    }
+
+    checkRelevance() {
+
+        this.relevance += 1;
+
+        if (this.relevance > 4) {
+
+            this.obscure.restart();
+            this.querySegment();
+            this.relevance = 0; // reset relevance
+
+        }
+
+    }
+
+    obscureCounter() {
+
+        const timeline = new TimelineMax();
+        const speed = this.Graph.speed / 1000;
+        const duration = 0.5;
+        const delay = speed - duration;
+
+        timeline
+            .stop()
+            .delay(delay)
+            .to([this.$point, this.$number], duration, {opacity: 0})
+            .to([this.$point, this.$number], duration, {opacity: 1}, `+=${speed + delay}`);
+
+        return timeline;
 
     }
 
@@ -66,7 +123,9 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     }
 
-    prepDigits() {
+    prepElements() {
+
+        // TweenMax.set([this.$point, this.$number], {opacity: 0});
 
         for (let i = 0; i < this.digits.length; i += 1) {
 
@@ -89,7 +148,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
         const numbers = this.paper.g().attr({
             'class': 'hero__number',
-            'transform': 'translate(-19-14)'
+            'transform': 'translate(-17-14)'
         });
 
         for (let i = 0; i < 3; i += 1) {
@@ -98,7 +157,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
             for (let j = 0; j < 10; j += 1) {
 
-                const x = 12 * i;
+                const x = 10 * i;
                 const y = 0;
                 const text = this.paper.text(x, y, `${j}`);
 
@@ -114,7 +173,16 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     }
 
+    distillCoordinates() {
+
+        this.Graph.x = this.Graph.x[this.segment];
+        this.Graph.y = this.Graph.y[this.segment];
+
+    }
+
     positionCounter({init} = {}) {
+
+        this.distillCoordinates();
 
         const speed = init ? 0 : this.Graph.speed / 1000;
         const x = this.Graph.x;
@@ -133,6 +201,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
         // transition each number strip to their new value
 
         this.invertNumber();
+        this.increaseNUmber();
         this.roundNumber();
         this.inspectNumber();
         this.scaleNumber();
@@ -153,6 +222,11 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     }
 
+    increaseNUmber() {
+
+        this.Graph.y *= 3;
+
+    }
 
     inspectNumber(number = this.Graph.y) {
 
@@ -194,7 +268,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     swapNumber() {
 
-        const speed = this.Graph.speed / 1000;
+        const speed = this.Graph.speed / 1000 / 2;
 
         for (let i = 0; i < this.size; i += 1) {
 
@@ -206,8 +280,10 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
                 const $current = this.digits[i].$dom.eq(current);
                 const $latest = this.digits[i].$dom.eq(latest);
 
-                TweenMax.fromTo($current, speed / 2, {attr: {opacity: 1, y: 0}}, {attr: {opacity: 0, y: -10}});
-                TweenMax.fromTo($latest, speed, {attr: {opacity: 0, y: 10}}, {attr: {opacity: 1, y: 0}});
+                // TweenMax.fromTo($current, speed, {attr: {opacity: 1, y: 0}}, {attr: {opacity: 0, y: -10}});
+                TweenMax.fromTo($current, speed, {attr: {y: 0}}, {attr: {y: -10}});
+                // TweenMax.fromTo($latest, speed, {attr: {opacity: 0, y: 10}}, {attr: {opacity: 1, y: 0}});
+                TweenMax.fromTo($latest, speed, {attr: {y: 10}}, {attr: {y: 0}});
 
                 this.digits[i].current = latest;
 
@@ -295,6 +371,11 @@ class Spline {
         this.buildM();
         this.buildC();
 
+        // turn Graph data into an array and store the current coordinates
+        // this far as the first reference.
+        this.Graph.x = [this.Graph.x];
+        this.Graph.y = [this.Graph.y];
+
         for (let i = 0; i < this.Graph.size.total - 1; i += 1) {
 
             this.buildS(i);
@@ -338,10 +419,10 @@ class Spline {
         const sX = this.offset(70, 20);
         const sY = sX / 2.5 * i;
         const x1 = this.Graph.size.width;
-        const y1 = this.randomise(25, 10) * i / 2 * -1;
+        const y1 = this.Graph.randomise(25, 10) * i / 2 * -1;
 
-        this.Graph.x += i < this.Graph.size.total - 2 ? x1 : 0;
-        this.Graph.y += i < this.Graph.size.total - 2 ? y1 : 0;
+        this.Graph.x[i + 1] = this.Graph.x[i] + x1;
+        this.Graph.y[i + 1] = this.Graph.y[i] + y1;
         this.data.s[i] = {sX, sY, x1, y1};
 
         // return `s${sX},{sY}, ${x1},${y1}`;
@@ -350,15 +431,7 @@ class Spline {
 
     offset(base, variance) {
 
-        return this.randomise(1) === 0 ? base + this.randomise(variance) : base - this.randomise(variance);
-
-    }
-
-    randomise(max, min = 0) {
-
-        const random =  Math.floor(Math.random() * (max - min + 1)) + min;
-
-        return random;
+        return this.Graph.randomise(1) === 0 ? base + this.Graph.randomise(variance) : base - this.Graph.randomise(variance);
 
     }
 
@@ -409,8 +482,6 @@ class Graph {
 
     constructor (Hero, i) {
 
-        console.log('Constructing Graph');
-
         this.Hero = Hero;
 
         this.i = i;
@@ -423,6 +494,7 @@ class Graph {
         this.Counter = new Counter(this);
 
         // Prep
+        this.fadeGraph();
         this.Counter.positionCounter({init: true});
         this.Counter.cycleCounterText({init: true});
 
@@ -441,6 +513,14 @@ class Graph {
 
     }
 
+    randomise(max, min = 0) {
+
+        const random =  Math.floor(Math.random() * (max - min + 1)) + min;
+
+        return random;
+
+    }
+
     generatePaper(type) {
 
         this.Hero.$wrapper.append($(`
@@ -454,12 +534,21 @@ class Graph {
 
     }
 
+    fadeGraph() {
+
+        var opacity = 1 / this.Hero.instances * (this.i + 1);
+
+        this.Spline.paper.attr('opacity', opacity);
+        this.Counter.paper.attr('opacity', opacity);
+
+    }
+
     animateSequence() {
 
         this.Spline.svg.animate(
 			{ path: this.Spline.createSpline() },
 			this.speed,
-			mina.linear, // mina.easeinout,
+			mina.linear,
 			() => {
                 this.animateCallback();
             }
@@ -471,6 +560,7 @@ class Graph {
         this.animateSequence();
         this.Counter.positionCounter();
         this.Counter.cycleCounterText();
+        this.Counter.checkRelevance();
     }
 
 }
@@ -498,6 +588,7 @@ class Hero {
         this.$window = $(window);
         this.$wrapper = $('#hero');
         this.size = this.calcSize();
+        this.instances = 1;
 
         this.graphInstances();
 
@@ -530,7 +621,7 @@ class Hero {
 
         this.Graphs = [];
 
-        for (let i = 0; i < 3; i += 1) {
+        for (let i = 0; i < this.instances; i += 1) {
 
             this.Graphs[i] = new Graph(this, i);
 

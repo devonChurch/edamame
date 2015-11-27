@@ -36,6 +36,7 @@
     }
 
     &__number {
-        font-family: Arial;
+        fill: palette(blueDark);
+        font-family: 'Roboto', sans-serif;
     }
 }
