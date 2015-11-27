@@ -22,8 +22,6 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     constructor (Graph) {
 
-        console.log(`Constructing Counter| id = ${Graph.i}`);
-
         this.Graph = Graph;
         this.size = 3;
         this.segment = this.randomiseSegment();
@@ -213,9 +211,9 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     }
 
-    increaseNUmber() {
+    invertNumber(number = this.Graph.y) {
 
-        this.Graph.y *= 3;
+        this.Graph.y = this.Graph.Hero.size.height - number / 2;
 
     }
 
@@ -321,8 +319,6 @@ db   8D 88      88booo.   .88.   88  V888 88.
 class Spline {
 
     constructor (Graph) {
-
-        console.log(`Constructing Spline| id = ${Graph.i}`);
 
         this.Graph = Graph;
         this.paper = this.Graph.generatePaper('spline');
