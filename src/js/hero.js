@@ -25,7 +25,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
         console.log(`Constructing Counter| id = ${Graph.i}`);
 
         this.Graph = Graph;
-        this.size = 3; // what to name???
+        this.size = 3;
         this.segment = this.randomiseSegment();
         this.relevance = 0;
         this.paper = this.Graph.generatePaper('counter');
@@ -33,7 +33,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
         this.$number = this.$wrapper.find('> .hero__number');
         this.$point = this.$wrapper.find('> .hero__counter-point');
         this.digits = this.referenceDigits();
-        // this.prepElements();
+        this.prepDigits();
         this.obscure = this.obscureCounter();
 
     }
@@ -123,9 +123,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     }
 
-    prepElements() {
-
-        // TweenMax.set([this.$point, this.$number], {opacity: 0});
+    prepDigits() {
 
         for (let i = 0; i < this.digits.length; i += 1) {
 
@@ -148,7 +146,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
         const numbers = this.paper.g().attr({
             'class': 'hero__number',
-            'transform': 'translate(-17-14)'
+            'transform': 'translate(-14, -14)'
         });
 
         for (let i = 0; i < 3; i += 1) {
@@ -201,7 +199,6 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
         // transition each number strip to their new value
 
         this.invertNumber();
-        this.increaseNUmber();
         this.roundNumber();
         this.inspectNumber();
         this.scaleNumber();
@@ -213,12 +210,6 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
     roundNumber(number = this.Graph.y) {
 
         this.Graph.y = Math.round(number);
-
-    }
-
-    invertNumber(number = this.Graph.y) {
-
-        this.Graph.y = this.Graph.Hero.size.height - number / 2;
 
     }
 
@@ -280,10 +271,8 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
                 const $current = this.digits[i].$dom.eq(current);
                 const $latest = this.digits[i].$dom.eq(latest);
 
-                // TweenMax.fromTo($current, speed, {attr: {opacity: 1, y: 0}}, {attr: {opacity: 0, y: -10}});
-                TweenMax.fromTo($current, speed, {attr: {y: 0}}, {attr: {y: -10}});
-                // TweenMax.fromTo($latest, speed, {attr: {opacity: 0, y: 10}}, {attr: {opacity: 1, y: 0}});
-                TweenMax.fromTo($latest, speed, {attr: {y: 10}}, {attr: {y: 0}});
+                TweenMax.fromTo($current, speed, {attr: {opacity: 1, y: 0}}, {attr: {opacity: 0, y: -10}});
+                TweenMax.fromTo($latest, speed, {attr: {opacity: 0, y: 10}}, {attr: {opacity: 1, y: 0}});
 
                 this.digits[i].current = latest;
 
@@ -588,7 +577,7 @@ class Hero {
         this.$window = $(window);
         this.$wrapper = $('#hero');
         this.size = this.calcSize();
-        this.instances = 1;
+        this.instances = 3;
 
         this.graphInstances();
 
