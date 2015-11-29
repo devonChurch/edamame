@@ -25,6 +25,7 @@ class Graph {
         this.x = 0;
         this.y = 0;
         this.speed = 1000 * (this.i + 1);
+        this.animation = true;
 
         this.Spline = new Spline(this);
         this.Counter = new Counter(this);
@@ -34,9 +35,7 @@ class Graph {
         this.Counter.positionCounter({init: true});
         this.Counter.cycleCounterText({init: true});
 
-        setTimeout(() => {
-            this.animateCallback();
-        }, 100);
+        setTimeout(this.animateCallback(), 100);
 
     }
 
@@ -85,18 +84,32 @@ class Graph {
 			{ path: this.Spline.createSpline() },
 			this.speed,
 			mina.linear,
-			() => {
-                this.animateCallback();
-            }
+			() => { this.animateCallback(); }
         );
 
     }
 
     animateCallback() {
-        this.animateSequence();
-        this.Counter.positionCounter();
-        this.Counter.cycleCounterText();
-        this.Counter.checkRelevance();
+
+        // animation
+
+        if (this.Hero.testRelevance()) {
+
+            this.animateSequence();
+            this.Counter.positionCounter();
+            this.Counter.cycleCounterText();
+            this.Counter.checkRelevance();
+
+            this.animation = true;
+
+        } else {
+
+            console.log('Stopping animation');
+
+            this.animation = false; // set to false as some animation could still be going inbetween becoming relevan . irellivent
+
+        }
+
     }
 
 }

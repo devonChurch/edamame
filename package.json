@@ -43,8 +43,11 @@
     "webpack-dev-server": "^1.12.1"
   },
   "dependencies": {
+    "debounce": "^1.0.0",
     "gsap": "^1.18.0",
+    "ifvisible.js": "^1.0.6",
     "jquery": "^2.1.4",
+    "match-media": "^0.2.0",
     "snapsvg": "^0.4.0"
   }
 }

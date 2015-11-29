@@ -32,7 +32,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
         this.$point = this.$wrapper.find('> .hero__counter-point');
         this.digits = this.referenceDigits();
         this.prepDigits();
-        this.obscure = this.obscureCounter();
+        this.obscure = 4; // this.obscureCounter();
 
     }
 
@@ -62,30 +62,28 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
         this.relevance += 1;
 
-        if (this.relevance > 4) {
+        if (this.relevance > this.obscure) {
 
-            this.obscure.restart();
+            this.obscureCounter({show: false});
             this.querySegment();
             this.relevance = 0; // reset relevance
+
+        } else if (this.relevance === 2 ) {
+
+            this.obscureCounter({show: true});
 
         }
 
     }
 
-    obscureCounter() {
+    obscureCounter({show}) {
 
-        const timeline = new TimelineMax();
         const speed = this.Graph.speed / 1000;
         const duration = 0.5;
-        const delay = speed - duration;
+        const delay = show ? 0 : speed - duration;
+        const opacity = show ? 1 : 0;
 
-        timeline
-            .stop()
-            .delay(delay)
-            .to([this.$point, this.$number], duration, {opacity: 0})
-            .to([this.$point, this.$number], duration, {opacity: 1}, `+=${speed + delay}`);
-
-        return timeline;
+        TweenMax.to([this.$point, this.$number], duration, {delay: delay, opacity: opacity});
 
     }
 
@@ -176,7 +174,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     }
 
-    positionCounter({init} = {}) {
+    positionCounter(init) {
 
         this.distillCoordinates();
 
