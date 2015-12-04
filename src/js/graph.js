@@ -80,18 +80,18 @@ class Graph {
 
     animateSequence() {
 
+        // console.log('animateSequence()');
+
         this.Spline.svg.animate(
 			{ path: this.Spline.createSpline() },
 			this.speed,
-			mina.linear,
+			mina.easeinout,
 			() => { this.animateCallback(); }
         );
 
     }
 
     animateCallback() {
-
-        // animation
 
         if (this.Hero.testRelevance()) {
 
@@ -103,8 +103,6 @@ class Graph {
             this.animation = true;
 
         } else {
-
-            console.log('Stopping animation');
 
             this.animation = false; // set to false as some animation could still be going inbetween becoming relevan . irellivent
 

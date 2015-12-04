@@ -1,5 +1,5 @@
 const $ = require('jquery');
-require('gsap'); /* global TweenMax, TimelineMax, Linear */
+require('gsap'); /* global TweenMax, Sine */
 require('snapsvg');
 
 // Hero
@@ -32,7 +32,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
         this.$point = this.$wrapper.find('> .hero__counter-point');
         this.digits = this.referenceDigits();
         this.prepDigits();
-        this.obscure = 4; // this.obscureCounter();
+        this.obscure = 4;
 
     }
 
@@ -182,7 +182,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
         const x = this.Graph.x;
         const y = this.Graph.y;
 
-        TweenMax.to(this.$wrapper, speed, {x: x, y: y, transformOrigin:'center center', ease: Linear.easeNone});
+        TweenMax.to(this.$wrapper, speed, {x: x, y: y, transformOrigin:'center center', ease: Sine.easeInOut});
 
     }
 
@@ -288,7 +288,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
         for (let i = 0; i < length; i += 1) {
 
-            scale *= 1.035;
+            scale *= 1.032;
 
         }
 

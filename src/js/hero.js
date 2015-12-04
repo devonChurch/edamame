@@ -41,20 +41,24 @@ class Hero {
 
         this.$window = $(window);
         this.$wrapper = $('#hero');
-        this.instances = 3;
+        this.instances = 4;
         this.mobile = '768px';
 
-        this.relevance = this.createRelevance();
-        this.calcSize();
+        // this.relevance = this.createRelevance();
+        // this.calcSize();
 
-        this.graphInstances();
 
-        this.windowChange();
-        this.tabStatus();
+
+        this.initialise();
+
+        this.windowChangeListner();
+        this.tabChangeListener();
+
+        // this.createcreateGraphInstances();
 
     }
 
-    windowChange() {
+    windowChangeListner() {
 
         this.$window
             .on('resize', () => {
@@ -62,61 +66,48 @@ class Hero {
                 const callback = this.setViewport();
                 debounce(callback, 1000);
 
-            }).resize()
+            })
             .on('scroll', () => {
 
                 const callback = this.setScrollView();
                 debounce(callback, 200);
 
-            }).scroll();
+            });
 
     }
 
-    tabStatus() {
+    tabChangeListener() {
 
-        // ifvisible.setIdleDuration(10);
-        //
-        // ifvisible.on('idle', function(){
-        //     // Stop auto updating the live data
-        //     // stream.pause();
-        //     console.log('pause the stuffs!');
-        //
-        // });
+        ifvisible
+            .on('blur', () => this.setTabActive(false))
+            .on('focus', () => {
 
-        ifvisible.on('blur', () => {
+                this.setTabActive(true);
+                this.destroyGraphInstances();
+                this.initialise();
 
-            console.log('Tab is NOT in focus');
-            this.setTabActive(false);
+            });
 
-        }).on('focus', () => {
+    }
 
-            console.log('Tab IS in focus');
-            this.setTabActive(true);
+    initialise() {
 
-        });
+        this.createRelevance();
+        this.calcSize();
+        this.createGraphInstances();
 
     }
 
     calcSize() {
 
         const height = 300;
-        const width = 1024; // this.$window.width();
+        const width = 1024;
 
         this.size = {height, width};
 
     }
 
-    graphInstances() {
-
-        // if (this.Graphs) {
-        //     this.Graphs[0].animateCallback = null;
-        //     this.Graphs[1].animateCallback = null;
-        //     this.Graphs[2].animateCallback = null;
-        // }
-        //
-        //
-        //
-        // delete this.Graphs;
+    createGraphInstances() {
 
         this.Graphs = [];
 
@@ -128,19 +119,30 @@ class Hero {
 
     }
 
+    destroyGraphInstances() {
+
+        for (let i = 0; i < this.instances; i += 1) {
+
+            this.Graphs[i].animateCallback = () => {};
+            this.$wrapper.find(`#hero__spline-${i}, #hero__counter-${i}`).remove();
+
+        }
+
+    }
+
     createRelevance() {
 
-        return {
-            tabActive: true,
-            scrollView: false,
-            viewport: false
-        };
+        this.relevance = {};
+
+        this.setTabActive(ifvisible.now());
+        this.setScrollView();
+        this.setViewport();
 
     }
 
     testRelevance() {
 
-        // console.log(this.relevance);
+        console.log(`${this.relevance.tabActive} && ${this.relevance.scrollView} && ${this.relevance.viewport}`);
 
         return this.relevance.tabActive && this.relevance.scrollView && this.relevance.viewport;
 
@@ -160,8 +162,9 @@ class Hero {
 
     setScrollView() {
 
-        // Will work once set to not auto scale width and height...
         const scrollView = this.$window.scrollTop() < (this.$wrapper.offset().top + this.$wrapper.outerHeight());
+
+        console.log(scrollView);
 
         this.relevance.scrollView = scrollView;
         this.resumeAnimation();
@@ -173,7 +176,7 @@ class Hero {
         const viewport = matchMedia(`(min-width: ${this.mobile})`).matches;
 
         this.relevance.viewport = viewport;
-        // this.resumeAnimation();
+        this.resumeAnimation();
 
     }
 
@@ -185,7 +188,6 @@ class Hero {
 
                 if (!this.Graphs[i].animation) {
 
-                    console.log(`resumeAnimation() graph: ${i}`);
                     this.Graphs[i].animateCallback();
 
                 }
