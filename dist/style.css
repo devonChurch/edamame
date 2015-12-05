@@ -1,0 +1,41 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:300);@font-face {
+  font-family: 'BLOKKNeue-Regular';
+  src: url("/font/BLOKKNeue-Regular.woff") format("woff"); }
+
+html {
+  box-sizing: border-box; }
+
+*, *:before, *:after {
+  box-sizing: inherit; }
+
+body {
+  margin: 0; }
+
+.hero {
+  background-image: linear-gradient(to bottom, #68d8fd, #14b5ea);
+  height: 0;
+  padding-top: 29.29688%;
+  position: relative;
+  width: 100%; }
+  .hero__svg {
+    left: 0;
+    position: absolute;
+    top: 0; }
+  .hero__spline path {
+    fill: rgba(23, 139, 191, 0.2);
+    stroke-width: 1;
+    stroke: #178bbf;
+    stroke-linecap: round; }
+  .hero__counter {
+    z-index: 1; }
+    .hero__counter-alignment {
+      fill: none; }
+    .hero__counter-point {
+      fill: #14b5ea;
+      stroke-width: 1;
+      stroke: #178bbf; }
+  .hero__number {
+    fill: #178bbf;
+    font-family: 'Roboto', sans-serif; }
+
+/*# sourceMappingURL=style.css.map*/
