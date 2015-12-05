@@ -17,7 +17,7 @@ class Spline {
     constructor (Graph) {
 
         this.Graph = Graph;
-        this.paper = this.Graph.generatePaper('spline');
+        this.paper = this.Graph.generatePaper(this, 'spline');
         this.svg = this.paper.path(this.createSpline());
 
     }

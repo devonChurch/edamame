@@ -107,6 +107,8 @@
 	    // rebuild the graph instances based on the new window width
 	
 	    function Hero() {
+	        var _this = this;
+	
 	        _classCallCheck(this, Hero);
 	
 	        this.$window = $(window);
@@ -114,30 +116,34 @@
 	        this.instances = 4;
 	        this.mobile = '768px';
 	
-	        // this.relevance = this.createRelevance();
-	        // this.calcSize();
+	        setTimeout(function () {
 	
-	        this.initialise();
-	
-	        this.windowChangeListner();
-	        this.tabChangeListener();
-	
-	        // this.createcreateGraphInstances();
+	            _this.initialise();
+	            _this.windowChangeListner();
+	            _this.tabChangeListener();
+	        }, 0);
 	    }
 	
 	    _createClass(Hero, [{
 	        key: 'windowChangeListner',
 	        value: function windowChangeListner() {
-	            var _this = this;
+	
+	            var that = this;
 	
 	            this.$window.on('resize', function () {
 	
-	                var callback = _this.setViewport();
-	                debounce(callback, 1000);
+	                debounce(function () {
+	
+	                    that.setViewport();
+	                    that.resumeAnimation();
+	                }, 1000);
 	            }).on('scroll', function () {
 	
-	                var callback = _this.setScrollView();
-	                debounce(callback, 200);
+	                debounce(function () {
+	
+	                    that.setScrollView();
+	                    that.resumeAnimation();
+	                }, 200);
 	            });
 	        }
 	    }, {
@@ -146,7 +152,9 @@
 	            var _this2 = this;
 	
 	            ifvisible.on('blur', function () {
-	                return _this2.setTabActive(false);
+	
+	                _this2.setTabActive(false);
+	                _this2.resumeAnimation();
 	            }).on('focus', function () {
 	
 	                _this2.setTabActive(true);
@@ -189,8 +197,17 @@
 	            for (var i = 0; i < this.instances; i += 1) {
 	
 	                this.Graphs[i].animateCallback = function () {};
-	                this.$wrapper.find('#hero__spline-' + i + ', #hero__counter-' + i).remove();
+	                this.Graphs[i].$wrapper.remove();
+	                // this.$wrapper.find(`#hero__spline-${i}, #hero__counter-${i}`).remove();
 	            }
+	        }
+	    }, {
+	        key: 'getOffset',
+	        value: function getOffset(i) {
+	
+	            var offset = 2; // % base
+	
+	            return i + offset; // negitive offset
 	        }
 	    }, {
 	        key: 'createRelevance',
@@ -206,8 +223,6 @@
 	        key: 'testRelevance',
 	        value: function testRelevance() {
 	
-	            console.log(this.relevance.tabActive + ' && ' + this.relevance.scrollView + ' && ' + this.relevance.viewport);
-	
 	            return this.relevance.tabActive && this.relevance.scrollView && this.relevance.viewport;
 	
 	            // Current media query?
@@ -219,7 +234,6 @@
 	        value: function setTabActive(state) {
 	
 	            this.relevance.tabActive = state;
-	            this.resumeAnimation();
 	        }
 	    }, {
 	        key: 'setScrollView',
@@ -227,19 +241,15 @@
 	
 	            var scrollView = this.$window.scrollTop() < this.$wrapper.offset().top + this.$wrapper.outerHeight();
 	
-	            console.log(scrollView);
-	
 	            this.relevance.scrollView = scrollView;
-	            this.resumeAnimation();
 	        }
 	    }, {
 	        key: 'setViewport',
 	        value: function setViewport() {
 	
-	            var viewport = matchMedia('(min-width: ' + this.mobile + ')').matches;
+	            var viewport = typeof matchMedia === 'function' ? matchMedia('(min-width: ' + this.mobile + ')').matches : true;
 	
 	            this.relevance.viewport = viewport;
-	            this.resumeAnimation();
 	        }
 	    }, {
 	        key: 'resumeAnimation',
@@ -9934,8 +9944,9 @@
 	
 	var $ = __webpack_require__(6);
 	__webpack_require__(12); /* global Snap, mina */
-	var Spline = __webpack_require__(13);
-	var Counter = __webpack_require__(14);
+	__webpack_require__(13); /* global TweenMax, Sine */
+	var Spline = __webpack_require__(15);
+	var Counter = __webpack_require__(16);
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 	
@@ -9961,11 +9972,13 @@
 	        this.speed = 1000 * (this.i + 1);
 	        this.animation = true;
 	
+	        this.$wrapper = this.buildWrapper();
 	        this.Spline = new Spline(this);
 	        this.Counter = new Counter(this);
 	
 	        // Prep
 	        this.fadeGraph();
+	        this.setOffset();
 	        this.Counter.positionCounter({ init: true });
 	        this.Counter.cycleCounterText({ init: true });
 	
@@ -9991,10 +10004,21 @@
 	            return random;
 	        }
 	    }, {
-	        key: 'generatePaper',
-	        value: function generatePaper(type) {
+	        key: 'buildWrapper',
+	        value: function buildWrapper() {
 	
-	            this.Hero.$wrapper.append($('\n            <svg id="hero__' + type + '-' + this.i + '"\n                 class="hero__' + type + ' hero__svg"\n                 xmlns="http://www.w3.org/2000/svg"\n                 viewBox="0 0 ' + this.Hero.size.width + ' ' + this.Hero.size.height + '"\n                 preserveAspectRatio="xMidYMid meet" />'));
+	            var $wrapper = $('\n            <div id="hero__graph-' + this.i + '"\n                 class="hero__graph" />');
+	            //  style="width: ${100 + this.Hero.getOffset(this.i)}%"/>`);
+	
+	            this.Hero.$wrapper.append($wrapper);
+	
+	            return $wrapper;
+	        }
+	    }, {
+	        key: 'generatePaper',
+	        value: function generatePaper(that, type) {
+	
+	            that.Graph.$wrapper.append($('\n            <svg id="hero__' + type + '-' + this.i + '"\n                 class="hero__' + type + ' hero__svg"\n                 xmlns="http://www.w3.org/2000/svg"\n                 viewBox="0 0 ' + this.Hero.size.width + ' ' + this.Hero.size.height + '"\n                 preserveAspectRatio="xMidYMid meet" />'));
 	
 	            return Snap('#hero__' + type + '-' + this.i);
 	        }
@@ -10006,6 +10030,22 @@
 	
 	            this.Spline.paper.attr('opacity', opacity);
 	            this.Counter.paper.attr('opacity', opacity);
+	        }
+	    }, {
+	        key: 'setOffset',
+	        value: function setOffset() {
+	
+	            this.offset = this.i % 2 * this.Hero.getOffset(this.i) * -1;
+	            TweenMax.set(this.$wrapper, { scale: this.Hero.getOffset(this.i) / 100 + 1, transformOrigin: 'left center', x: this.offset + '%' });
+	        }
+	    }, {
+	        key: 'toggleOffset',
+	        value: function toggleOffset() {
+	
+	            var speed = this.speed / 1000;
+	            this.offset = this.offset === 0 ? this.Hero.getOffset(this.i) * -1 : 0;
+	
+	            TweenMax.to(this.$wrapper, speed, { x: this.offset + '%', ease: Sine.easeInOut });
 	        }
 	    }, {
 	        key: 'animateSequence',
@@ -10025,6 +10065,7 @@
 	            if (this.Hero.testRelevance()) {
 	
 	                this.animateSequence();
+	                this.toggleOffset();
 	                this.Counter.positionCounter();
 	                this.Counter.cycleCounterText();
 	                this.Counter.checkRelevance();
@@ -18227,469 +18268,6 @@
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-	
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-	
-	var $ = __webpack_require__(6);
-	__webpack_require__(12);
-	
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
-	
-	.d8888. d8888b. db      d888888b d8b   db d88888b
-	88'  YP 88  `8D 88        `88'   888o  88 88'
-	`8bo.   88oodD' 88         88    88V8o 88 88ooooo
-	  `Y8b. 88~~~   88         88    88 V8o88 88~~~~~
-	db   8D 88      88booo.   .88.   88  V888 88.
-	`8888Y' 88      Y88888P Y888888P VP   V8P Y88888P
-	
-	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	
-	var Spline = (function () {
-	    function Spline(Graph) {
-	        _classCallCheck(this, Spline);
-	
-	        this.Graph = Graph;
-	        this.paper = this.Graph.generatePaper('spline');
-	        this.svg = this.paper.path(this.createSpline());
-	    }
-	
-	    _createClass(Spline, [{
-	        key: 'createSpline',
-	        value: function createSpline() {
-	
-	            this.resetSplineData();
-	            this.generateSplineData();
-	            return this.generateSvgCode();
-	        }
-	    }, {
-	        key: 'resetSplineData',
-	        value: function resetSplineData() {
-	
-	            this.Graph.x = 0;
-	            this.Graph.y = 0;
-	
-	            this.data = {
-	                m: {}, // Starting coordinates
-	                c: {}, // Initial cubic bezier curve
-	                s: [] // All proceeding smooth curves
-	            };
-	        }
-	    }, {
-	        key: 'generateSplineData',
-	        value: function generateSplineData() {
-	
-	            // generate path data in object format THEN build spline
-	            // this way you can pass in data and determain new offset based on previous coordinates
-	            // also we can build the animated circles with solid x and y positions
-	
-	            this.buildM();
-	            this.buildC();
-	
-	            // turn Graph data into an array and store the current coordinates
-	            // this far as the first reference.
-	            this.Graph.x = [this.Graph.x];
-	            this.Graph.y = [this.Graph.y];
-	
-	            for (var i = 0; i < this.Graph.size.total - 1; i += 1) {
-	
-	                this.buildS(i);
-	            }
-	        }
-	    }, {
-	        key: 'buildM',
-	        value: function buildM() {
-	            // startPoint
-	
-	            var x1 = 0;
-	            var y1 = this.Graph.Hero.size.height / 3 * 2 + this.Graph.i * 5;
-	
-	            this.Graph.x += x1;
-	            this.Graph.y += y1;
-	            this.data.m = { x1: x1, y1: y1 };
-	
-	            // return `M${x1},${y1}`;
-	        }
-	    }, {
-	        key: 'buildC',
-	        value: function buildC() {
-	            // cubicBezier
-	
-	            var x1 = 0;
-	            var y1 = 0;
-	            var x2 = this.Graph.size.width;
-	            var y2 = 0;
-	            var xC = x2 / 2;
-	            var yC = this.offset(20, 20);
-	
-	            this.Graph.x += x1 + x2;
-	            this.Graph.y += y1 + y2;
-	            this.data.c = { x1: x1, y1: y1, xC: xC, yC: yC, x2: x2, y2: y2 };
-	
-	            // return `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
-	        }
-	    }, {
-	        key: 'buildS',
-	        value: function buildS(i) {
-	            // smoothCurve
-	
-	            var sX = this.offset(70, 20);
-	            var sY = sX / 2.5 * i;
-	            var x1 = this.Graph.size.width;
-	            var y1 = this.Graph.randomise(25, 10) * i / 2 * -1;
-	
-	            this.Graph.x[i + 1] = this.Graph.x[i] + x1;
-	            this.Graph.y[i + 1] = this.Graph.y[i] + y1;
-	            this.data.s[i] = { sX: sX, sY: sY, x1: x1, y1: y1 };
-	
-	            // return `s${sX},{sY}, ${x1},${y1}`;
-	        }
-	    }, {
-	        key: 'offset',
-	        value: function offset(base, variance) {
-	
-	            return this.Graph.randomise(1) === 0 ? base + this.Graph.randomise(variance) : base - this.Graph.randomise(variance);
-	        }
-	    }, {
-	        key: 'generateSvgCode',
-	        value: function generateSvgCode() {
-	
-	            var svg = '';
-	            var p = undefined; // reference to current (P)ath data
-	
-	            p = this.data.m;
-	            svg += 'M' + p.x1 + ',' + p.y1; // buildM();
-	
-	            p = this.data.c;
-	            svg += 'c' + p.x1 + ',' + p.y1 + ', ' + p.xC + ',' + p.yC + ', ' + p.x2 + ',' + p.y2; // buildC();
-	
-	            for (var i = 0; i < this.data.s.length; i += 1) {
-	
-	                p = this.data.s[i];
-	                svg += 's' + p.sX + ',' + p.sY + ', ' + p.x1 + ',' + p.y1; // buildS();
-	            }
-	
-	            // Close off path (so that we can add in a fill)
-	            svg += 'V' + this.Graph.Hero.size.height + ' H' + 0 + ' z';
-	
-	            return svg;
-	        }
-	    }]);
-	
-	    return Spline;
-	})();
-	
-	module.exports = Spline;
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-	
-	var $ = __webpack_require__(6);
-	__webpack_require__(15); /* global TweenMax, Sine */
-	__webpack_require__(12);
-	
-	// Hero
-	// Graph
-	// Spline
-	// Counter
-	
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
-	
-	 .o88b.  .d88b.  db    db d8b   db d888888b d88888b d8888b.
-	d8P  Y8 .8P  Y8. 88    88 888o  88 `~~88~~' 88'     88  `8D
-	8P      88    88 88    88 88V8o 88    88    88ooooo 88oobY'
-	8b      88    88 88    88 88 V8o88    88    88~~~~~ 88`8b
-	Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
-	 `Y88P'  `Y88P'  ~Y8888P' VP   V8P    YP    Y88888P 88   YD
-	
-	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	
-	var Counter = (function () {
-	    function Counter(Graph) {
-	        _classCallCheck(this, Counter);
-	
-	        this.Graph = Graph;
-	        this.size = 3;
-	        this.segment = this.randomiseSegment();
-	        this.relevance = 0;
-	        this.paper = this.Graph.generatePaper('counter');
-	        this.$wrapper = this.buildCounter();
-	        this.$number = this.$wrapper.find('> .hero__number');
-	        this.$point = this.$wrapper.find('> .hero__counter-point');
-	        this.digits = this.referenceDigits();
-	        this.prepDigits();
-	        this.obscure = 4;
-	    }
-	
-	    _createClass(Counter, [{
-	        key: 'randomiseSegment',
-	        value: function randomiseSegment() {
-	
-	            var max = this.Graph.size.total - 2;
-	
-	            return this.Graph.randomise(max);
-	        }
-	    }, {
-	        key: 'querySegment',
-	        value: function querySegment() {
-	
-	            var latest = undefined;
-	
-	            do {
-	
-	                latest = this.randomiseSegment();
-	            } while (this.segment === latest);
-	
-	            this.segment = latest;
-	        }
-	    }, {
-	        key: 'checkRelevance',
-	        value: function checkRelevance() {
-	
-	            this.relevance += 1;
-	
-	            if (this.relevance > this.obscure) {
-	
-	                this.obscureCounter({ show: false });
-	                this.querySegment();
-	                this.relevance = 0; // reset relevance
-	            } else if (this.relevance === 2) {
-	
-	                    this.obscureCounter({ show: true });
-	                }
-	        }
-	    }, {
-	        key: 'obscureCounter',
-	        value: function obscureCounter(_ref) {
-	            var show = _ref.show;
-	
-	            var speed = this.Graph.speed / 1000;
-	            var duration = 0.5;
-	            var delay = show ? 0 : speed - duration;
-	            var opacity = show ? 1 : 0;
-	
-	            TweenMax.to([this.$point, this.$number], duration, { delay: delay, opacity: opacity });
-	        }
-	    }, {
-	        key: 'buildCounter',
-	        value: function buildCounter() {
-	
-	            var x = 0;
-	            var y = 0;
-	            var bigCircle = this.paper.circle(x, y, 30).attr('class', 'hero__counter-alignment');
-	            var smallCircle = this.paper.circle(x, y, 5).attr('class', 'hero__counter-point');
-	            var numbers = this.buildNumbers();
-	            this.paper.group(bigCircle, smallCircle, numbers).attr('class', 'hero__counter-anchor');
-	            var $wrapper = this.Graph.Hero.$wrapper.find('#hero__counter-' + this.Graph.i + ' .hero__counter-anchor');
-	
-	            return $wrapper;
-	        }
-	    }, {
-	        key: 'referenceDigits',
-	        value: function referenceDigits() {
-	
-	            var $strips = this.$number.find('> g');
-	            var digits = [];
-	
-	            for (var i = 0; i < this.size; i += 1) {
-	
-	                digits[i] = {
-	                    $dom: $strips.eq(i).find('text'),
-	                    current: null
-	                };
-	            }
-	
-	            return digits;
-	        }
-	    }, {
-	        key: 'prepDigits',
-	        value: function prepDigits() {
-	
-	            for (var i = 0; i < this.digits.length; i += 1) {
-	
-	                TweenMax.set(this.digits[i].$dom, { attr: { opacity: 0 } });
-	            }
-	        }
-	    }, {
-	        key: 'buildNumbers',
-	        value: function buildNumbers() {
-	
-	            /*
-	             wrapper
-	             --> number
-	                  --> strip
-	                        --> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-	             */
-	
-	            var numbers = this.paper.g().attr({
-	                'class': 'hero__number',
-	                'transform': 'translate(-14, -14)'
-	            });
-	
-	            for (var i = 0; i < 3; i += 1) {
-	
-	                var strip = this.paper.g();
-	
-	                for (var j = 0; j < 10; j += 1) {
-	
-	                    var x = 10 * i;
-	                    var y = 0;
-	                    var text = this.paper.text(x, y, '' + j);
-	
-	                    strip.add(text);
-	                }
-	
-	                numbers.add(strip);
-	            }
-	
-	            return numbers;
-	        }
-	    }, {
-	        key: 'distillCoordinates',
-	        value: function distillCoordinates() {
-	
-	            this.Graph.x = this.Graph.x[this.segment];
-	            this.Graph.y = this.Graph.y[this.segment];
-	        }
-	    }, {
-	        key: 'positionCounter',
-	        value: function positionCounter(init) {
-	
-	            this.distillCoordinates();
-	
-	            var speed = init ? 0 : this.Graph.speed / 1000;
-	            var x = this.Graph.x;
-	            var y = this.Graph.y;
-	
-	            TweenMax.to(this.$wrapper, speed, { x: x, y: y, transformOrigin: 'center center', ease: Sine.easeInOut });
-	        }
-	    }, {
-	        key: 'cycleCounterText',
-	        value: function cycleCounterText() {
-	
-	            // Get the current 3 digit number
-	            // if < 3 digits prepent a 0 on the front
-	            // if > 3 digits === 999
-	            // split the number into the array
-	            // transition each number strip to their new value
-	
-	            this.invertNumber();
-	            this.roundNumber();
-	            this.inspectNumber();
-	            this.scaleNumber();
-	            this.splitNumber();
-	            this.swapNumber();
-	        }
-	    }, {
-	        key: 'roundNumber',
-	        value: function roundNumber() {
-	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
-	
-	            this.Graph.y = Math.round(number);
-	        }
-	    }, {
-	        key: 'invertNumber',
-	        value: function invertNumber() {
-	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
-	
-	            this.Graph.y = this.Graph.Hero.size.height - number / 2;
-	        }
-	    }, {
-	        key: 'inspectNumber',
-	        value: function inspectNumber() {
-	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
-	
-	            if (number > 999) {
-	
-	                number = 999;
-	            } else if (number < 100) {
-	
-	                var _length = 3 - ('' + number).length;
-	
-	                for (var i = 0; i < _length; i += 1) {
-	
-	                    number = '0' + number;
-	                }
-	
-	                number = parseInt(number, 10);
-	            }
-	
-	            this.Graph.y = number;
-	        }
-	    }, {
-	        key: 'splitNumber',
-	        value: function splitNumber() {
-	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
-	
-	            number = ('' + number).split('');
-	
-	            for (var i = 0; i < number.length; i += 1) {
-	
-	                this.digits[i].latest = parseInt(number[i]);
-	            }
-	
-	            this.Graph.y = number;
-	        }
-	    }, {
-	        key: 'swapNumber',
-	        value: function swapNumber() {
-	
-	            var speed = this.Graph.speed / 1000 / 2;
-	
-	            for (var i = 0; i < this.size; i += 1) {
-	
-	                var current = this.digits[i].current;
-	                var latest = this.digits[i].latest;
-	
-	                if (current !== latest) {
-	
-	                    var $current = this.digits[i].$dom.eq(current);
-	                    var $latest = this.digits[i].$dom.eq(latest);
-	
-	                    TweenMax.fromTo($current, speed, { attr: { opacity: 1, y: 0 } }, { attr: { opacity: 0, y: -10 } });
-	                    TweenMax.fromTo($latest, speed, { attr: { opacity: 0, y: 10 } }, { attr: { opacity: 1, y: 0 } });
-	
-	                    this.digits[i].current = latest;
-	                }
-	            }
-	        }
-	    }, {
-	        key: 'scaleNumber',
-	        value: function scaleNumber() {
-	
-	            // Exponential growth
-	
-	            var speed = this.Graph.speed / 1000;
-	            var length = this.Graph.y / 1.5;
-	            var scale = 1;
-	
-	            for (var i = 0; i < length; i += 1) {
-	
-	                scale *= 1.032;
-	            }
-	
-	            TweenMax.to(this.$number, speed, { scale: scale / 100, transformOrigin: 'center center' });
-	        }
-	    }]);
-	
-	    return Counter;
-	})();
-	
-	module.exports = Counter;
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global) {/*!
 	 * VERSION: 1.18.0
 	 * DATE: 2015-09-05
@@ -24483,7 +24061,7 @@
 							if (global) {
 								_globals[n] = cl; //provides a way to avoid global namespace pollution. By default, the main classes like TweenLite, Power1, Strong, etc. are added to window unless a GreenSockGlobals is defined. So if you want to have things added to a custom object instead, just do something like window.GreenSockGlobals = {} before loading any GreenSock files. You can even set up an alias like window.GreenSockGlobals = windows.gs = {} so that you can access everything like gs.TweenLite. Also remember that ALL classes are added to the window.com.greensock object (in their respective packages, like com.greensock.easing.Power1, com.greensock.TweenLite, etc.)
 								hasModule = (typeof(module) !== "undefined" && module.exports);
-								if (!hasModule && "function" === "function" && __webpack_require__(16)){ //AMD
+								if (!hasModule && "function" === "function" && __webpack_require__(14)){ //AMD
 									!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() { return cl; }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 								} else if (ns === moduleName && hasModule){ //node
 									module.exports = cl;
@@ -26265,12 +25843,475 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 16 */
+/* 14 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	var $ = __webpack_require__(6);
+	__webpack_require__(12);
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+	
+	.d8888. d8888b. db      d888888b d8b   db d88888b
+	88'  YP 88  `8D 88        `88'   888o  88 88'
+	`8bo.   88oodD' 88         88    88V8o 88 88ooooo
+	  `Y8b. 88~~~   88         88    88 V8o88 88~~~~~
+	db   8D 88      88booo.   .88.   88  V888 88.
+	`8888Y' 88      Y88888P Y888888P VP   V8P Y88888P
+	
+	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	
+	var Spline = (function () {
+	    function Spline(Graph) {
+	        _classCallCheck(this, Spline);
+	
+	        this.Graph = Graph;
+	        this.paper = this.Graph.generatePaper(this, 'spline');
+	        this.svg = this.paper.path(this.createSpline());
+	    }
+	
+	    _createClass(Spline, [{
+	        key: 'createSpline',
+	        value: function createSpline() {
+	
+	            this.resetSplineData();
+	            this.generateSplineData();
+	            return this.generateSvgCode();
+	        }
+	    }, {
+	        key: 'resetSplineData',
+	        value: function resetSplineData() {
+	
+	            this.Graph.x = 0;
+	            this.Graph.y = 0;
+	
+	            this.data = {
+	                m: {}, // Starting coordinates
+	                c: {}, // Initial cubic bezier curve
+	                s: [] // All proceeding smooth curves
+	            };
+	        }
+	    }, {
+	        key: 'generateSplineData',
+	        value: function generateSplineData() {
+	
+	            // generate path data in object format THEN build spline
+	            // this way you can pass in data and determain new offset based on previous coordinates
+	            // also we can build the animated circles with solid x and y positions
+	
+	            this.buildM();
+	            this.buildC();
+	
+	            // turn Graph data into an array and store the current coordinates
+	            // this far as the first reference.
+	            this.Graph.x = [this.Graph.x];
+	            this.Graph.y = [this.Graph.y];
+	
+	            for (var i = 0; i < this.Graph.size.total - 1; i += 1) {
+	
+	                this.buildS(i);
+	            }
+	        }
+	    }, {
+	        key: 'buildM',
+	        value: function buildM() {
+	            // startPoint
+	
+	            var x1 = 0;
+	            var y1 = this.Graph.Hero.size.height / 3 * 2 + this.Graph.i * 5;
+	
+	            this.Graph.x += x1;
+	            this.Graph.y += y1;
+	            this.data.m = { x1: x1, y1: y1 };
+	
+	            // return `M${x1},${y1}`;
+	        }
+	    }, {
+	        key: 'buildC',
+	        value: function buildC() {
+	            // cubicBezier
+	
+	            var x1 = 0;
+	            var y1 = 0;
+	            var x2 = this.Graph.size.width;
+	            var y2 = 0;
+	            var xC = x2 / 2;
+	            var yC = this.offset(20, 20);
+	
+	            this.Graph.x += x1 + x2;
+	            this.Graph.y += y1 + y2;
+	            this.data.c = { x1: x1, y1: y1, xC: xC, yC: yC, x2: x2, y2: y2 };
+	
+	            // return `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
+	        }
+	    }, {
+	        key: 'buildS',
+	        value: function buildS(i) {
+	            // smoothCurve
+	
+	            var sX = this.offset(70, 20);
+	            var sY = sX / 2.5 * i;
+	            var x1 = this.Graph.size.width;
+	            var y1 = this.Graph.randomise(25, 10) * i / 2 * -1;
+	
+	            this.Graph.x[i + 1] = this.Graph.x[i] + x1;
+	            this.Graph.y[i + 1] = this.Graph.y[i] + y1;
+	            this.data.s[i] = { sX: sX, sY: sY, x1: x1, y1: y1 };
+	
+	            // return `s${sX},{sY}, ${x1},${y1}`;
+	        }
+	    }, {
+	        key: 'offset',
+	        value: function offset(base, variance) {
+	
+	            return this.Graph.randomise(1) === 0 ? base + this.Graph.randomise(variance) : base - this.Graph.randomise(variance);
+	        }
+	    }, {
+	        key: 'generateSvgCode',
+	        value: function generateSvgCode() {
+	
+	            var svg = '';
+	            var p = undefined; // reference to current (P)ath data
+	
+	            p = this.data.m;
+	            svg += 'M' + p.x1 + ',' + p.y1; // buildM();
+	
+	            p = this.data.c;
+	            svg += 'c' + p.x1 + ',' + p.y1 + ', ' + p.xC + ',' + p.yC + ', ' + p.x2 + ',' + p.y2; // buildC();
+	
+	            for (var i = 0; i < this.data.s.length; i += 1) {
+	
+	                p = this.data.s[i];
+	                svg += 's' + p.sX + ',' + p.sY + ', ' + p.x1 + ',' + p.y1; // buildS();
+	            }
+	
+	            // Close off path (so that we can add in a fill)
+	            svg += 'V' + this.Graph.Hero.size.height + ' H' + 0 + ' z';
+	
+	            return svg;
+	        }
+	    }]);
+	
+	    return Spline;
+	})();
+	
+	module.exports = Spline;
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	var $ = __webpack_require__(6);
+	__webpack_require__(13); /* global TweenMax, Sine */
+	__webpack_require__(12);
+	
+	// Hero
+	// Graph
+	// Spline
+	// Counter
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+	
+	 .o88b.  .d88b.  db    db d8b   db d888888b d88888b d8888b.
+	d8P  Y8 .8P  Y8. 88    88 888o  88 `~~88~~' 88'     88  `8D
+	8P      88    88 88    88 88V8o 88    88    88ooooo 88oobY'
+	8b      88    88 88    88 88 V8o88    88    88~~~~~ 88`8b
+	Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
+	 `Y88P'  `Y88P'  ~Y8888P' VP   V8P    YP    Y88888P 88   YD
+	
+	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	
+	var Counter = (function () {
+	    function Counter(Graph) {
+	        _classCallCheck(this, Counter);
+	
+	        this.Graph = Graph;
+	        this.size = 3;
+	        this.segment = this.randomiseSegment();
+	        this.relevance = 0;
+	        this.paper = this.Graph.generatePaper(this, 'counter');
+	        this.$wrapper = this.buildCounter();
+	        this.$number = this.$wrapper.find('> .hero__number');
+	        this.$point = this.$wrapper.find('> .hero__counter-point');
+	        this.digits = this.referenceDigits();
+	        this.prepDigits();
+	        this.obscure = 4;
+	    }
+	
+	    _createClass(Counter, [{
+	        key: 'randomiseSegment',
+	        value: function randomiseSegment() {
+	
+	            var max = this.Graph.size.total - 2;
+	
+	            return this.Graph.randomise(max);
+	        }
+	    }, {
+	        key: 'querySegment',
+	        value: function querySegment() {
+	
+	            var latest = undefined;
+	
+	            do {
+	
+	                latest = this.randomiseSegment();
+	            } while (this.segment === latest);
+	
+	            this.segment = latest;
+	        }
+	    }, {
+	        key: 'checkRelevance',
+	        value: function checkRelevance() {
+	
+	            this.relevance += 1;
+	
+	            if (this.relevance > this.obscure) {
+	
+	                this.obscureCounter({ show: false });
+	                this.querySegment();
+	                this.relevance = 0; // reset relevance
+	            } else if (this.relevance === 2) {
+	
+	                    this.obscureCounter({ show: true });
+	                }
+	        }
+	    }, {
+	        key: 'obscureCounter',
+	        value: function obscureCounter(_ref) {
+	            var show = _ref.show;
+	
+	            var speed = this.Graph.speed / 1000;
+	            var duration = 0.5;
+	            var delay = show ? 0 : speed - duration;
+	            var opacity = show ? 1 : 0;
+	
+	            TweenMax.to([this.$point, this.$number], duration, { delay: delay, opacity: opacity });
+	        }
+	    }, {
+	        key: 'buildCounter',
+	        value: function buildCounter() {
+	
+	            var x = 0;
+	            var y = 0;
+	            var bigCircle = this.paper.circle(x, y, 30).attr('class', 'hero__counter-alignment');
+	            var smallCircle = this.paper.circle(x, y, 5).attr('class', 'hero__counter-point');
+	            var numbers = this.buildNumbers();
+	            this.paper.group(bigCircle, smallCircle, numbers).attr('class', 'hero__counter-anchor');
+	            var $wrapper = this.Graph.Hero.$wrapper.find('#hero__counter-' + this.Graph.i + ' .hero__counter-anchor');
+	
+	            return $wrapper;
+	        }
+	    }, {
+	        key: 'referenceDigits',
+	        value: function referenceDigits() {
+	
+	            var $strips = this.$number.find('> g');
+	            var digits = [];
+	
+	            for (var i = 0; i < this.size; i += 1) {
+	
+	                digits[i] = {
+	                    $dom: $strips.eq(i).find('text'),
+	                    current: null
+	                };
+	            }
+	
+	            return digits;
+	        }
+	    }, {
+	        key: 'prepDigits',
+	        value: function prepDigits() {
+	
+	            for (var i = 0; i < this.digits.length; i += 1) {
+	
+	                TweenMax.set(this.digits[i].$dom, { attr: { opacity: 0 } });
+	            }
+	        }
+	    }, {
+	        key: 'buildNumbers',
+	        value: function buildNumbers() {
+	
+	            /*
+	             wrapper
+	             --> number
+	                  --> strip
+	                        --> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+	             */
+	
+	            var numbers = this.paper.g().attr({
+	                'class': 'hero__number',
+	                'transform': 'translate(-14, -14)'
+	            });
+	
+	            for (var i = 0; i < 3; i += 1) {
+	
+	                var strip = this.paper.g();
+	
+	                for (var j = 0; j < 10; j += 1) {
+	
+	                    var x = 10 * i;
+	                    var y = 0;
+	                    var text = this.paper.text(x, y, '' + j);
+	
+	                    strip.add(text);
+	                }
+	
+	                numbers.add(strip);
+	            }
+	
+	            return numbers;
+	        }
+	    }, {
+	        key: 'distillCoordinates',
+	        value: function distillCoordinates() {
+	
+	            this.Graph.x = this.Graph.x[this.segment];
+	            this.Graph.y = this.Graph.y[this.segment];
+	        }
+	    }, {
+	        key: 'positionCounter',
+	        value: function positionCounter(init) {
+	
+	            this.distillCoordinates();
+	
+	            var speed = init ? 0 : this.Graph.speed / 1000;
+	            var x = this.Graph.x;
+	            var y = this.Graph.y;
+	
+	            TweenMax.to(this.$wrapper, speed, { x: x, y: y, transformOrigin: 'center center', ease: Sine.easeInOut });
+	        }
+	    }, {
+	        key: 'cycleCounterText',
+	        value: function cycleCounterText() {
+	
+	            // Get the current 3 digit number
+	            // if < 3 digits prepent a 0 on the front
+	            // if > 3 digits === 999
+	            // split the number into the array
+	            // transition each number strip to their new value
+	
+	            this.invertNumber();
+	            this.roundNumber();
+	            this.inspectNumber();
+	            this.scaleNumber();
+	            this.splitNumber();
+	            this.swapNumber();
+	        }
+	    }, {
+	        key: 'roundNumber',
+	        value: function roundNumber() {
+	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
+	
+	            this.Graph.y = Math.round(number);
+	        }
+	    }, {
+	        key: 'invertNumber',
+	        value: function invertNumber() {
+	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
+	
+	            this.Graph.y = this.Graph.Hero.size.height - number / 2;
+	        }
+	    }, {
+	        key: 'inspectNumber',
+	        value: function inspectNumber() {
+	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
+	
+	            if (number > 999) {
+	
+	                number = 999;
+	            } else if (number < 100) {
+	
+	                var _length = 3 - ('' + number).length;
+	
+	                for (var i = 0; i < _length; i += 1) {
+	
+	                    number = '0' + number;
+	                }
+	
+	                number = parseInt(number, 10);
+	            }
+	
+	            this.Graph.y = number;
+	        }
+	    }, {
+	        key: 'splitNumber',
+	        value: function splitNumber() {
+	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
+	
+	            number = ('' + number).split('');
+	
+	            for (var i = 0; i < number.length; i += 1) {
+	
+	                this.digits[i].latest = parseInt(number[i]);
+	            }
+	
+	            this.Graph.y = number;
+	        }
+	    }, {
+	        key: 'swapNumber',
+	        value: function swapNumber() {
+	
+	            var speed = this.Graph.speed / 1000 / 2;
+	
+	            for (var i = 0; i < this.size; i += 1) {
+	
+	                var current = this.digits[i].current;
+	                var latest = this.digits[i].latest;
+	
+	                if (current !== latest) {
+	
+	                    var $current = this.digits[i].$dom.eq(current);
+	                    var $latest = this.digits[i].$dom.eq(latest);
+	
+	                    TweenMax.fromTo($current, speed, { attr: { opacity: 1, y: 0 } }, { attr: { opacity: 0, y: -10 } });
+	                    TweenMax.fromTo($latest, speed, { attr: { opacity: 0, y: 10 } }, { attr: { opacity: 1, y: 0 } });
+	
+	                    this.digits[i].current = latest;
+	                }
+	            }
+	        }
+	    }, {
+	        key: 'scaleNumber',
+	        value: function scaleNumber() {
+	
+	            // Exponential growth
+	
+	            var speed = this.Graph.speed / 1000;
+	            var length = this.Graph.y / 1.5;
+	            var scale = 1;
+	
+	            for (var i = 0; i < length; i += 1) {
+	
+	                scale *= 1.032;
+	            }
+	
+	            TweenMax.to(this.$number, speed, { scale: scale / 100, transformOrigin: 'center center' });
+	        }
+	    }]);
+	
+	    return Counter;
+	})();
+	
+	module.exports = Counter;
 
 /***/ }
 /******/ ]);

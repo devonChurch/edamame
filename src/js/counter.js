@@ -26,7 +26,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
         this.size = 3;
         this.segment = this.randomiseSegment();
         this.relevance = 0;
-        this.paper = this.Graph.generatePaper('counter');
+        this.paper = this.Graph.generatePaper(this, 'counter');
         this.$wrapper = this.buildCounter();
         this.$number = this.$wrapper.find('> .hero__number');
         this.$point = this.$wrapper.find('> .hero__counter-point');

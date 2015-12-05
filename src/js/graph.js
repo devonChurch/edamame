@@ -1,5 +1,6 @@
 const $ = require('jquery');
 require('snapsvg'); /* global Snap, mina */
+require('gsap'); /* global TweenMax, Sine */
 const Spline = require('./spline');
 const Counter = require('./counter');
 
@@ -27,11 +28,13 @@ class Graph {
         this.speed = 1000 * (this.i + 1);
         this.animation = true;
 
+        this.$wrapper = this.buildWrapper();
         this.Spline = new Spline(this);
         this.Counter = new Counter(this);
 
         // Prep
         this.fadeGraph();
+        this.setOffset();
         this.Counter.positionCounter({init: true});
         this.Counter.cycleCounterText({init: true});
 
@@ -56,9 +59,22 @@ class Graph {
 
     }
 
-    generatePaper(type) {
+    buildWrapper() {
 
-        this.Hero.$wrapper.append($(`
+        const $wrapper = $(`
+            <div id="hero__graph-${this.i}"
+                 class="hero__graph" />`);
+                //  style="width: ${100 + this.Hero.getOffset(this.i)}%"/>`);
+
+        this.Hero.$wrapper.append($wrapper);
+
+        return $wrapper;
+
+    }
+
+    generatePaper(that, type) {
+
+        that.Graph.$wrapper.append($(`
             <svg id="hero__${type}-${this.i}"
                  class="hero__${type} hero__svg"
                  xmlns="http://www.w3.org/2000/svg"
@@ -75,6 +91,22 @@ class Graph {
 
         this.Spline.paper.attr('opacity', opacity);
         this.Counter.paper.attr('opacity', opacity);
+
+    }
+
+    setOffset() {
+
+        this.offset =  this.i % 2 * this.Hero.getOffset(this.i) * -1;
+        TweenMax.set(this.$wrapper, {scale: (this.Hero.getOffset(this.i) / 100) + 1, transformOrigin:'left center', x: `${this.offset}%`});
+
+    }
+
+    toggleOffset() {
+
+        const speed = this.speed / 1000;
+        this.offset = this.offset === 0 ? this.Hero.getOffset(this.i) * -1 : 0;
+
+        TweenMax.to(this.$wrapper, speed, {x: `${this.offset}%`, ease: Sine.easeInOut});
 
     }
 
@@ -96,6 +128,7 @@ class Graph {
         if (this.Hero.testRelevance()) {
 
             this.animateSequence();
+            this.toggleOffset();
             this.Counter.positionCounter();
             this.Counter.cycleCounterText();
             this.Counter.checkRelevance();

@@ -14,13 +14,22 @@ body {
 .hero {
   background-image: linear-gradient(to bottom, #68d8fd, #14b5ea);
   height: 0;
+  overflow: hidden;
   padding-top: 29.29688%;
   position: relative;
+  -webkit-transform: translateZ(0);
+          transform: translateZ(0);
   width: 100%; }
-  .hero__svg {
+  .hero__graph, .hero__svg {
     left: 0;
     position: absolute;
+    width: 100%;
     top: 0; }
+  .hero__graph {
+    height: 100%; }
+  .hero__svg {
+    height: auto;
+    width: 100%; }
   .hero__spline path {
     fill: rgba(23, 139, 191, 0.2);
     stroke-width: 1;

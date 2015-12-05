@@ -44,33 +44,39 @@ class Hero {
         this.instances = 4;
         this.mobile = '768px';
 
-        // this.relevance = this.createRelevance();
-        // this.calcSize();
+        setTimeout(() => {
 
+            this.initialise();
+            this.windowChangeListner();
+            this.tabChangeListener();
 
-
-        this.initialise();
-
-        this.windowChangeListner();
-        this.tabChangeListener();
-
-        // this.createcreateGraphInstances();
+        }, 0);
 
     }
 
     windowChangeListner() {
 
+        const that = this;
+
         this.$window
             .on('resize', () => {
 
-                const callback = this.setViewport();
-                debounce(callback, 1000);
+                debounce(() => {
+
+                    that.setViewport();
+                    that.resumeAnimation();
+
+                }, 1000);
 
             })
             .on('scroll', () => {
 
-                const callback = this.setScrollView();
-                debounce(callback, 200);
+                debounce(() => {
+
+                    that.setScrollView();
+                    that.resumeAnimation();
+
+                }, 200);
 
             });
 
@@ -79,7 +85,12 @@ class Hero {
     tabChangeListener() {
 
         ifvisible
-            .on('blur', () => this.setTabActive(false))
+            .on('blur', () => {
+
+                this.setTabActive(false);
+                this.resumeAnimation();
+
+            })
             .on('focus', () => {
 
                 this.setTabActive(true);
@@ -124,9 +135,18 @@ class Hero {
         for (let i = 0; i < this.instances; i += 1) {
 
             this.Graphs[i].animateCallback = () => {};
-            this.$wrapper.find(`#hero__spline-${i}, #hero__counter-${i}`).remove();
+            this.Graphs[i].$wrapper.remove();
+            // this.$wrapper.find(`#hero__spline-${i}, #hero__counter-${i}`).remove();
 
         }
+
+    }
+
+    getOffset(i) {
+
+        const offset = 2; // % base
+
+        return i + offset; // negitive offset
 
     }
 
@@ -142,8 +162,6 @@ class Hero {
 
     testRelevance() {
 
-        console.log(`${this.relevance.tabActive} && ${this.relevance.scrollView} && ${this.relevance.viewport}`);
-
         return this.relevance.tabActive && this.relevance.scrollView && this.relevance.viewport;
 
         // Current media query?
@@ -156,7 +174,6 @@ class Hero {
     setTabActive(state) {
 
         this.relevance.tabActive = state;
-        this.resumeAnimation();
 
     }
 
@@ -164,19 +181,15 @@ class Hero {
 
         const scrollView = this.$window.scrollTop() < (this.$wrapper.offset().top + this.$wrapper.outerHeight());
 
-        console.log(scrollView);
-
         this.relevance.scrollView = scrollView;
-        this.resumeAnimation();
 
     }
 
     setViewport() {
 
-        const viewport = matchMedia(`(min-width: ${this.mobile})`).matches;
+        const viewport = typeof matchMedia === 'function' ? matchMedia(`(min-width: ${this.mobile})`).matches : true;
 
         this.relevance.viewport = viewport;
-        this.resumeAnimation();
 
     }
 
