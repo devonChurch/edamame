@@ -10,6 +10,18 @@ require('snapsvg');
 db   8D 88      88booo.   .88.   88  V888 88.
 `8888Y' 88      Y88888P Y888888P VP   V8P Y88888P
 
+Hero
+  —> Graph
+    —> [SPLINE]
+    —> Counter
+
+This Class produces a Graph instance “wave” element. On every Graph animation
+cycle, we dynamically create a new wave instance and animate to the new splines
+path location using SnapSVG. Each generated wave instance has a randomised
+structure and an exponential growth pattern from left to right. Each concurrent
+Graph instance created from the Hero Class will produce a wave with an
+additional segment for further visual diversity.
+
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 class Spline {
@@ -25,13 +37,17 @@ class Spline {
     createSpline() {
 
         this.resetSplineData();
+        // Build a generic data object with the path data.
         this.generateSplineData();
+        // Transfer path data into SVG format.
         return this.generateSvgCode();
 
     }
 
     resetSplineData() {
 
+        // The axis points for where the counter will reside on the current
+        // spline path.
         this.Graph.x = 0;
         this.Graph.y = 0;
 
@@ -45,15 +61,13 @@ class Spline {
 
     generateSplineData() {
 
-        // generate path data in object format THEN build spline
-        // this way you can pass in data and determain new offset based on previous coordinates
-        // also we can build the animated circles with solid x and y positions
-
         this.buildM();
         this.buildC();
 
-        // turn Graph data into an array and store the current coordinates
-        // this far as the first reference.
+        // Turn Graph data into an array and store the current coordinates
+        // thus far as the first reference. This will make it easy for the
+        // counter to select a random segment from the array to transition to it
+        // location.
         this.Graph.x = [this.Graph.x];
         this.Graph.y = [this.Graph.y];
 
@@ -65,7 +79,10 @@ class Spline {
 
     }
 
-    buildM() { // startPoint
+    buildM() {
+
+        // Starting Point:
+        // Generates -> `M${x1},${y1}`;
 
         const x1 = 0;
         const y1 = (this.Graph.Hero.size.height / 3 * 2) + (this.Graph.i * 5);
@@ -74,11 +91,12 @@ class Spline {
         this.Graph.y += y1;
         this.data.m = {x1, y1};
 
-        // return `M${x1},${y1}`;
-
     }
 
-    buildC() { // cubicBezier
+    buildC() {
+
+        // Cubic Bezier curve
+        // Generates -> `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
 
         const x1 = 0;
         const y1 = 0;
@@ -91,11 +109,12 @@ class Spline {
         this.Graph.y += y1 + y2;
         this.data.c = {x1, y1, xC, yC, x2, y2};
 
-        // return `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
-
     }
 
-    buildS(i) { // smoothCurve
+    buildS(i) {
+
+        // Smooth Curve
+        // Generates -> `s${sX},{sY}, ${x1},${y1}`;
 
         const sX = this.offset(70, 20);
         const sY = sX / 2.5 * i;
@@ -105,8 +124,6 @@ class Spline {
         this.Graph.x[i + 1] = this.Graph.x[i] + x1;
         this.Graph.y[i + 1] = this.Graph.y[i] + y1;
         this.data.s[i] = {sX, sY, x1, y1};
-
-        // return `s${sX},{sY}, ${x1},${y1}`;
 
     }
 

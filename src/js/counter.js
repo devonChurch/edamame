@@ -2,11 +2,6 @@ const $ = require('jquery');
 require('gsap'); /* global TweenMax, Sine */
 require('snapsvg');
 
-// Hero
-    // Graph
-        // Spline
-        // Counter
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 
  .o88b.  .d88b.  db    db d8b   db d888888b d88888b d8888b.
@@ -16,6 +11,16 @@ d8P  Y8 .8P  Y8. 88    88 888o  88 `~~88~~' 88'     88  `8D
 Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
  `Y88P'  `Y88P'  ~Y8888P' VP   V8P    YP    Y88888P 88   YD
 
+ Hero
+  —> Graph
+    —> Spline
+    —> [COUNTER]
+
+A single module created per graph instance. The Counter picks a random spline
+segment in which to reside and animates it’s y-position during the animation
+loop. The Counters current y-position is reflected in an animated number
+sequence that (visually) scales exponentially for added effect.
+
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
  class Counter {
@@ -23,20 +28,29 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
     constructor (Graph) {
 
         this.Graph = Graph;
+        // The amount of digits to render i.e. x3 = 888
         this.size = 3;
         this.segment = this.randomiseSegment();
+
         this.relevance = 0;
+        this.obscure = 4;
+
+        // Create elements:
         this.paper = this.Graph.generatePaper(this, 'counter');
         this.$wrapper = this.buildCounter();
         this.$number = this.$wrapper.find('> .hero__number');
         this.$point = this.$wrapper.find('> .hero__counter-point');
         this.digits = this.referenceDigits();
+
+        // Prep elements:
         this.prepDigits();
-        this.obscure = 4;
 
     }
 
     randomiseSegment() {
+
+        // Randomly picks one of the spline segments in which to position the
+        // counter in relation to.
 
         const max = this.Graph.size.total - 2;
 
@@ -45,6 +59,9 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
     }
 
     querySegment() {
+
+        // Runs in conjunction with randomiseSegment() and makes sure that the
+        // new spline segment never references the current position.
 
         let latest;
 
@@ -60,13 +77,18 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     checkRelevance() {
 
+        // A reference to check if the “relevance” equals the “obscure” tally
+        // and if so should reposition the counter during the current animation
+        // loop.
+
         this.relevance += 1;
 
         if (this.relevance > this.obscure) {
 
             this.obscureCounter({show: false});
             this.querySegment();
-            this.relevance = 0; // reset relevance
+            // reset relevance to begin testing again.
+            this.relevance = 0;
 
         } else if (this.relevance === 2 ) {
 
@@ -78,6 +100,9 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     obscureCounter({show}) {
 
+        // Repositions and fades the counter in / out depending on current
+        // scenario.
+
         const speed = this.Graph.speed / 1000;
         const duration = 0.5;
         const delay = show ? 0 : speed - duration;
@@ -88,6 +113,8 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
     }
 
     buildCounter() {
+
+        // Creates all of the counters elements.
 
         const x = 0;
         const y = 0;
@@ -102,6 +129,9 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
     }
 
     referenceDigits() {
+
+        // Creates an array that holds each digits DOM reference and current
+        // value.
 
         const $strips = this.$number.find('> g');
         const digits = [];
@@ -121,6 +151,9 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     prepDigits() {
 
+        // Fade out the digits on load (will fade into view when we begin the
+        // animation sequence).
+
         for (let i = 0; i < this.digits.length; i += 1) {
 
             TweenMax.set(this.digits[i].$dom, {attr: {opacity: 0}});
@@ -131,14 +164,12 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     buildNumbers() {
 
-        /*
+        // For each number we split each digit into a strip of 0-9 and control
+        // them independently.
 
-        wrapper
-         --> number
-              --> strip
-                    --> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-
-        */
+        // [NUMBER] (Wrapper that holds the digits)
+        //     -> [STRIP] (Holds the digit options)
+        //         -> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 (digit options)
 
         const numbers = this.paper.g().attr({
             'class': 'hero__number',
@@ -169,6 +200,8 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     distillCoordinates() {
 
+        // Gets the coordinates from the chosen segment.
+
         this.Graph.x = this.Graph.x[this.segment];
         this.Graph.y = this.Graph.y[this.segment];
 
@@ -188,11 +221,7 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     cycleCounterText() {
 
-        // Get the current 3 digit number
-        // if < 3 digits prepent a 0 on the front
-        // if > 3 digits === 999
-        // split the number into the array
-        // transition each number strip to their new value
+        // Processes then animates the current number sequence.
 
         this.invertNumber();
         this.roundNumber();
@@ -280,7 +309,9 @@ Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 
     scaleNumber() {
 
-        // Exponential growth
+        // Creates the exponential scale for the counter number (there will be
+        // an exaggerated size increase when compared to their linear
+        // separation).
 
         const speed = this.Graph.speed / 1000;
         const length = this.Graph.y / 1.5;

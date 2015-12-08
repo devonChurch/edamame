@@ -74,11 +74,6 @@
 	var ifvisible = __webpack_require__(10);
 	var Graph = __webpack_require__(11);
 	
-	// Hero
-	// Graph
-	// Spline
-	// Counter
-	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 	
 	db   db d88888b d8888b.  .d88b.
@@ -88,24 +83,25 @@
 	88   88 88.     88 `88. `8b  d8'
 	YP   YP Y88888P 88   YD  `Y88P'
 	
+	The main component Class that nests the other Class based references inside
+	itself i.e.
+	
+	[HERO]
+	  —> Graph
+	    —> Spline
+	    —> Counter
+	
+	In addition to holding the more “global” references to the execution, we also
+	check for the animation “relevance”. This functionality pauses the Graph’s
+	animation when the following conditions are not met:
+	
+	-> The tab is active.
+	-> The component is in the viewport.
+	-> The current media query is greater than mobile dimensions.
+	
 	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	var Hero = (function () {
-	
-	    // ON LOAD: ////////////////////////////////////////////////////////////////
-	
-	    // HERO...
-	    // find the width and height based on media query
-	    // set all relevance checks to true
-	
-	    // GRAPH...
-	    // find the segment width based on current window width (set via hero)
-	
-	    // ON RESIZE: //////////////////////////////////////////////////////////////
-	
-	    // HERO...
-	    // rebuild the graph instances based on the new window width
-	
 	    function Hero() {
 	        var _this = this;
 	
@@ -113,9 +109,12 @@
 	
 	        this.$window = $(window);
 	        this.$wrapper = $('#hero');
+	        // How many graphs (x1 spline / counter combos) to build.
 	        this.instances = 4;
+	        // Anything less than this will not invoke animation.
 	        this.mobile = '768px';
 	
+	        // Wait for the next CPU cycle then begin initialising the component.
 	        setTimeout(function () {
 	
 	            _this.initialise();
@@ -198,16 +197,7 @@
 	
 	                this.Graphs[i].animateCallback = function () {};
 	                this.Graphs[i].$wrapper.remove();
-	                // this.$wrapper.find(`#hero__spline-${i}, #hero__counter-${i}`).remove();
 	            }
-	        }
-	    }, {
-	        key: 'getOffset',
-	        value: function getOffset(i) {
-	
-	            var offset = 2; // % base
-	
-	            return i + offset; // negitive offset
 	        }
 	    }, {
 	        key: 'createRelevance',
@@ -223,11 +213,11 @@
 	        key: 'testRelevance',
 	        value: function testRelevance() {
 	
-	            return this.relevance.tabActive && this.relevance.scrollView && this.relevance.viewport;
+	            // Every animation loop we check to see if we should invoke another set
+	            // of animations. In no animation is needed then we save the CPU cycles
+	            // for something else.
 	
-	            // Current media query?
-	            // Is the hero in view (scroll)?
-	            // Is the tab active?
+	            return this.relevance.tabActive && this.relevance.scrollView && this.relevance.viewport;
 	        }
 	    }, {
 	        key: 'setTabActive',
@@ -254,6 +244,9 @@
 	    }, {
 	        key: 'resumeAnimation',
 	        value: function resumeAnimation() {
+	
+	            // If one of the animation “relevance” settings changes then we try to
+	            // ping the animation callback.
 	
 	            if (this.testRelevance()) {
 	
@@ -9957,6 +9950,15 @@
 	88. ~8~ 88 `88. 88   88 88      88   88
 	 Y888P  88   YD YP   YP 88      YP   YP
 	
+	 Hero
+	  —> [GRAPH]
+	    —> Spline
+	    —> Counter
+	
+	A wrapper for the Spline and Counter portions of a Graph instance. The animation
+	initialiser for the Graph wrapper and the nested Spline and Counter is
+	controlled here.
+	
 	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	var Graph = (function () {
@@ -9967,17 +9969,29 @@
 	
 	        this.i = i;
 	        this.size = this.calcSize();
+	        // the x and y position of the current spline segment where the counter
+	        // will reside for its current duration.
 	        this.x = 0;
 	        this.y = 0;
+	        // Animation speed for the graph x-offset,  the spline “wave” animation
+	        // and the counter displacement.
 	        this.speed = 1000 * (this.i + 1);
+	        // A hook for the “animation relevance” checks in the hero module. If
+	        // the hero pings a callback but the current animation cycle is still
+	        // going we do not want to run an additional animation sequence so
+	        // instead we would change this boolean from “false” to “true” and the
+	        // animation will continue seamlessly.
 	        this.animation = true;
 	
+	        // Create elements:
 	        this.$wrapper = this.buildWrapper();
 	        this.Spline = new Spline(this);
 	        this.Counter = new Counter(this);
 	
-	        // Prep
+	        // Prep elements:
 	        this.fadeGraph();
+	        // A number that acts as a percentage for both scale and x-axis offset
+	        this.displacement = this.i + 1;
 	        this.setOffset();
 	        this.Counter.positionCounter({ init: true });
 	        this.Counter.cycleCounterText({ init: true });
@@ -10008,7 +10022,6 @@
 	        value: function buildWrapper() {
 	
 	            var $wrapper = $('\n            <div id="hero__graph-' + this.i + '"\n                 class="hero__graph" />');
-	            //  style="width: ${100 + this.Hero.getOffset(this.i)}%"/>`);
 	
 	            this.Hero.$wrapper.append($wrapper);
 	
@@ -10026,6 +10039,9 @@
 	        key: 'fadeGraph',
 	        value: function fadeGraph() {
 	
+	            // Each graph has a staggered opacity that culminates at 100% on the
+	            // last instance.
+	
 	            var opacity = 1 / this.Hero.instances * (this.i + 1);
 	
 	            this.Spline.paper.attr('opacity', opacity);
@@ -10035,24 +10051,34 @@
 	        key: 'setOffset',
 	        value: function setOffset() {
 	
-	            this.offset = this.i % 2 * this.Hero.getOffset(this.i) * -1;
-	            TweenMax.set(this.$wrapper, { scale: this.Hero.getOffset(this.i) / 100 + 1, transformOrigin: 'left center', x: this.offset + '%' });
+	            // Setting the graph offset to be either 0 or the displacement value.
+	            // Offsets alternate between each instance off the Graph generation
+	            // loop. The graph scale is also increased proportionally to the maximum
+	            // displacement so that there are no bleed issue during the transitions.
+	
+	            this.offset = this.i % 2 * this.displacement * -1;
+	            TweenMax.set(this.$wrapper, { scale: this.displacement / 100 + 1, transformOrigin: 'left center', x: this.offset + '%' });
 	        }
 	    }, {
 	        key: 'toggleOffset',
 	        value: function toggleOffset() {
 	
+	            // At each animation loop we alternate the current offset between 0 and
+	            // the displacement value.
+	
 	            var speed = this.speed / 1000;
-	            this.offset = this.offset === 0 ? this.Hero.getOffset(this.i) * -1 : 0;
+	            this.offset = this.offset === 0 ? this.displacement * -1 : 0;
 	
 	            TweenMax.to(this.$wrapper, speed, { x: this.offset + '%', ease: Sine.easeInOut });
 	        }
 	    }, {
-	        key: 'animateSequence',
-	        value: function animateSequence() {
+	        key: 'animateSpline',
+	        value: function animateSpline() {
 	            var _this = this;
 	
-	            // console.log('animateSequence()');
+	            // Runs a single animation loop of the Spline transition. We use
+	            // SnapSVG’s animation callback to re-run this and the other animation
+	            // sets again (if deemed relevant by the Hero Class).
 	
 	            this.Spline.svg.animate({ path: this.Spline.createSpline() }, this.speed, mina.easeinout, function () {
 	                _this.animateCallback();
@@ -10062,9 +10088,12 @@
 	        key: 'animateCallback',
 	        value: function animateCallback() {
 	
+	            // Either starts or stops the animation process based on the “animation
+	            // relevance” check in the Hero Class.
+	
 	            if (this.Hero.testRelevance()) {
 	
-	                this.animateSequence();
+	                this.animateSpline();
 	                this.toggleOffset();
 	                this.Counter.positionCounter();
 	                this.Counter.cycleCounterText();
@@ -10073,7 +10102,11 @@
 	                this.animation = true;
 	            } else {
 	
-	                this.animation = false; // set to false as some animation could still be going inbetween becoming relevan . irellivent
+	                // We set the animation boolean to false as some animations could
+	                // still be running in-between becoming relevant / irrelevant (which
+	                // would result in two animations being called during the same
+	                // transition loop).
+	                this.animation = false;
 	            }
 	        }
 	    }]);
@@ -25872,6 +25905,18 @@
 	db   8D 88      88booo.   .88.   88  V888 88.
 	`8888Y' 88      Y88888P Y888888P VP   V8P Y88888P
 	
+	Hero
+	  —> Graph
+	    —> [SPLINE]
+	    —> Counter
+	
+	This Class produces a Graph instance “wave” element. On every Graph animation
+	cycle, we dynamically create a new wave instance and animate to the new splines
+	path location using SnapSVG. Each generated wave instance has a randomised
+	structure and an exponential growth pattern from left to right. Each concurrent
+	Graph instance created from the Hero Class will produce a wave with an
+	additional segment for further visual diversity.
+	
 	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	var Spline = (function () {
@@ -25888,13 +25933,17 @@
 	        value: function createSpline() {
 	
 	            this.resetSplineData();
+	            // Build a generic data object with the path data.
 	            this.generateSplineData();
+	            // Transfer path data into SVG format.
 	            return this.generateSvgCode();
 	        }
 	    }, {
 	        key: 'resetSplineData',
 	        value: function resetSplineData() {
 	
+	            // The axis points for where the counter will reside on the current
+	            // spline path.
 	            this.Graph.x = 0;
 	            this.Graph.y = 0;
 	
@@ -25908,15 +25957,13 @@
 	        key: 'generateSplineData',
 	        value: function generateSplineData() {
 	
-	            // generate path data in object format THEN build spline
-	            // this way you can pass in data and determain new offset based on previous coordinates
-	            // also we can build the animated circles with solid x and y positions
-	
 	            this.buildM();
 	            this.buildC();
 	
-	            // turn Graph data into an array and store the current coordinates
-	            // this far as the first reference.
+	            // Turn Graph data into an array and store the current coordinates
+	            // thus far as the first reference. This will make it easy for the
+	            // counter to select a random segment from the array to transition to it
+	            // location.
 	            this.Graph.x = [this.Graph.x];
 	            this.Graph.y = [this.Graph.y];
 	
@@ -25928,7 +25975,9 @@
 	    }, {
 	        key: 'buildM',
 	        value: function buildM() {
-	            // startPoint
+	
+	            // Starting Point:
+	            // Generates -> `M${x1},${y1}`;
 	
 	            var x1 = 0;
 	            var y1 = this.Graph.Hero.size.height / 3 * 2 + this.Graph.i * 5;
@@ -25936,13 +25985,13 @@
 	            this.Graph.x += x1;
 	            this.Graph.y += y1;
 	            this.data.m = { x1: x1, y1: y1 };
-	
-	            // return `M${x1},${y1}`;
 	        }
 	    }, {
 	        key: 'buildC',
 	        value: function buildC() {
-	            // cubicBezier
+	
+	            // Cubic Bezier curve
+	            // Generates -> `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
 	
 	            var x1 = 0;
 	            var y1 = 0;
@@ -25954,13 +26003,13 @@
 	            this.Graph.x += x1 + x2;
 	            this.Graph.y += y1 + y2;
 	            this.data.c = { x1: x1, y1: y1, xC: xC, yC: yC, x2: x2, y2: y2 };
-	
-	            // return `c${x1},${y1}, ${xC},${yC}, ${x2},${y2}`;
 	        }
 	    }, {
 	        key: 'buildS',
 	        value: function buildS(i) {
-	            // smoothCurve
+	
+	            // Smooth Curve
+	            // Generates -> `s${sX},{sY}, ${x1},${y1}`;
 	
 	            var sX = this.offset(70, 20);
 	            var sY = sX / 2.5 * i;
@@ -25970,8 +26019,6 @@
 	            this.Graph.x[i + 1] = this.Graph.x[i] + x1;
 	            this.Graph.y[i + 1] = this.Graph.y[i] + y1;
 	            this.data.s[i] = { sX: sX, sY: sY, x1: x1, y1: y1 };
-	
-	            // return `s${sX},{sY}, ${x1},${y1}`;
 	        }
 	    }, {
 	        key: 'offset',
@@ -26024,11 +26071,6 @@
 	__webpack_require__(13); /* global TweenMax, Sine */
 	__webpack_require__(12);
 	
-	// Hero
-	// Graph
-	// Spline
-	// Counter
-	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 	
 	 .o88b.  .d88b.  db    db d8b   db d888888b d88888b d8888b.
@@ -26038,6 +26080,16 @@
 	Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 	 `Y88P'  `Y88P'  ~Y8888P' VP   V8P    YP    Y88888P 88   YD
 	
+	 Hero
+	  —> Graph
+	    —> Spline
+	    —> [COUNTER]
+	
+	A single module created per graph instance. The Counter picks a random spline
+	segment in which to reside and animates it’s y-position during the animation
+	loop. The Counters current y-position is reflected in an animated number
+	sequence that (visually) scales exponentially for added effect.
+	
 	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	var Counter = (function () {
@@ -26045,21 +26097,30 @@
 	        _classCallCheck(this, Counter);
 	
 	        this.Graph = Graph;
+	        // The amount of digits to render i.e. x3 = 888
 	        this.size = 3;
 	        this.segment = this.randomiseSegment();
+	
 	        this.relevance = 0;
+	        this.obscure = 4;
+	
+	        // Create elements:
 	        this.paper = this.Graph.generatePaper(this, 'counter');
 	        this.$wrapper = this.buildCounter();
 	        this.$number = this.$wrapper.find('> .hero__number');
 	        this.$point = this.$wrapper.find('> .hero__counter-point');
 	        this.digits = this.referenceDigits();
+	
+	        // Prep elements:
 	        this.prepDigits();
-	        this.obscure = 4;
 	    }
 	
 	    _createClass(Counter, [{
 	        key: 'randomiseSegment',
 	        value: function randomiseSegment() {
+	
+	            // Randomly picks one of the spline segments in which to position the
+	            // counter in relation to.
 	
 	            var max = this.Graph.size.total - 2;
 	
@@ -26068,6 +26129,9 @@
 	    }, {
 	        key: 'querySegment',
 	        value: function querySegment() {
+	
+	            // Runs in conjunction with randomiseSegment() and makes sure that the
+	            // new spline segment never references the current position.
 	
 	            var latest = undefined;
 	
@@ -26082,22 +26146,30 @@
 	        key: 'checkRelevance',
 	        value: function checkRelevance() {
 	
+	            // A reference to check if the “relevance” equals the “obscure” tally
+	            // and if so should reposition the counter during the current animation
+	            // loop.
+	
 	            this.relevance += 1;
 	
 	            if (this.relevance > this.obscure) {
 	
 	                this.obscureCounter({ show: false });
 	                this.querySegment();
-	                this.relevance = 0; // reset relevance
+	                // reset relevance to begin testing again.
+	                this.relevance = 0;
 	            } else if (this.relevance === 2) {
 	
-	                    this.obscureCounter({ show: true });
-	                }
+	                this.obscureCounter({ show: true });
+	            }
 	        }
 	    }, {
 	        key: 'obscureCounter',
 	        value: function obscureCounter(_ref) {
 	            var show = _ref.show;
+	
+	            // Repositions and fades the counter in / out depending on current
+	            // scenario.
 	
 	            var speed = this.Graph.speed / 1000;
 	            var duration = 0.5;
@@ -26109,6 +26181,8 @@
 	    }, {
 	        key: 'buildCounter',
 	        value: function buildCounter() {
+	
+	            // Creates all of the counters elements.
 	
 	            var x = 0;
 	            var y = 0;
@@ -26123,6 +26197,9 @@
 	    }, {
 	        key: 'referenceDigits',
 	        value: function referenceDigits() {
+	
+	            // Creates an array that holds each digits DOM reference and current
+	            // value.
 	
 	            var $strips = this.$number.find('> g');
 	            var digits = [];
@@ -26141,6 +26218,9 @@
 	        key: 'prepDigits',
 	        value: function prepDigits() {
 	
+	            // Fade out the digits on load (will fade into view when we begin the
+	            // animation sequence).
+	
 	            for (var i = 0; i < this.digits.length; i += 1) {
 	
 	                TweenMax.set(this.digits[i].$dom, { attr: { opacity: 0 } });
@@ -26150,12 +26230,12 @@
 	        key: 'buildNumbers',
 	        value: function buildNumbers() {
 	
-	            /*
-	             wrapper
-	             --> number
-	                  --> strip
-	                        --> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-	             */
+	            // For each number we split each digit into a strip of 0-9 and control
+	            // them independently.
+	
+	            // [NUMBER] (Wrapper that holds the digits)
+	            //     -> [STRIP] (Holds the digit options)
+	            //         -> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 (digit options)
 	
 	            var numbers = this.paper.g().attr({
 	                'class': 'hero__number',
@@ -26184,6 +26264,8 @@
 	        key: 'distillCoordinates',
 	        value: function distillCoordinates() {
 	
+	            // Gets the coordinates from the chosen segment.
+	
 	            this.Graph.x = this.Graph.x[this.segment];
 	            this.Graph.y = this.Graph.y[this.segment];
 	        }
@@ -26203,11 +26285,7 @@
 	        key: 'cycleCounterText',
 	        value: function cycleCounterText() {
 	
-	            // Get the current 3 digit number
-	            // if < 3 digits prepent a 0 on the front
-	            // if > 3 digits === 999
-	            // split the number into the array
-	            // transition each number strip to their new value
+	            // Processes then animates the current number sequence.
 	
 	            this.invertNumber();
 	            this.roundNumber();
@@ -26293,7 +26371,9 @@
 	        key: 'scaleNumber',
 	        value: function scaleNumber() {
 	
-	            // Exponential growth
+	            // Creates the exponential scale for the counter number (there will be
+	            // an exaggerated size increase when compared to their linear
+	            // separation).
 	
 	            var speed = this.Graph.speed / 1000;
 	            var length = this.Graph.y / 1.5;

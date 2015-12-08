@@ -4,11 +4,6 @@ const debounce = require('debounce');
 const ifvisible = require('ifvisible.js');
 const Graph = require('./graph');
 
-// Hero
-    // Graph
-        // Spline
-        // Counter
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 
 db   db d88888b d8888b.  .d88b.
@@ -18,32 +13,36 @@ db   db d88888b d8888b.  .d88b.
 88   88 88.     88 `88. `8b  d8'
 YP   YP Y88888P 88   YD  `Y88P'
 
+The main component Class that nests the other Class based references inside
+itself i.e.
+
+[HERO]
+  —> Graph
+    —> Spline
+    —> Counter
+
+In addition to holding the more “global” references to the execution, we also
+check for the animation “relevance”. This functionality pauses the Graph’s
+animation when the following conditions are not met:
+
+-> The tab is active.
+-> The component is in the viewport.
+-> The current media query is greater than mobile dimensions.
+
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 class Hero {
-
-    // ON LOAD: ////////////////////////////////////////////////////////////////
-
-    // HERO...
-    // find the width and height based on media query
-    // set all relevance checks to true
-
-    // GRAPH...
-    // find the segment width based on current window width (set via hero)
-
-
-    // ON RESIZE: //////////////////////////////////////////////////////////////
-
-    // HERO...
-    // rebuild the graph instances based on the new window width
 
     constructor() {
 
         this.$window = $(window);
         this.$wrapper = $('#hero');
+        // How many graphs (x1 spline / counter combos) to build.
         this.instances = 4;
+        // Anything less than this will not invoke animation.
         this.mobile = '768px';
 
+        // Wait for the next CPU cycle then begin initialising the component.
         setTimeout(() => {
 
             this.initialise();
@@ -136,17 +135,8 @@ class Hero {
 
             this.Graphs[i].animateCallback = () => {};
             this.Graphs[i].$wrapper.remove();
-            // this.$wrapper.find(`#hero__spline-${i}, #hero__counter-${i}`).remove();
 
         }
-
-    }
-
-    getOffset(i) {
-
-        const offset = 2; // % base
-
-        return i + offset; // negitive offset
 
     }
 
@@ -162,12 +152,11 @@ class Hero {
 
     testRelevance() {
 
+        // Every animation loop we check to see if we should invoke another set
+        // of animations. In no animation is needed then we save the CPU cycles
+        // for something else.
+
         return this.relevance.tabActive && this.relevance.scrollView && this.relevance.viewport;
-
-        // Current media query?
-        // Is the hero in view (scroll)?
-        // Is the tab active?
-
 
     }
 
@@ -194,6 +183,9 @@ class Hero {
     }
 
     resumeAnimation() {
+
+        // If one of the animation “relevance” settings changes then we try to
+        // ping the animation callback.
 
         if (this.testRelevance()) {
 

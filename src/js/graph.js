@@ -13,6 +13,15 @@ const Counter = require('./counter');
 88. ~8~ 88 `88. 88   88 88      88   88
  Y888P  88   YD YP   YP 88      YP   YP
 
+ Hero
+  —> [GRAPH]
+    —> Spline
+    —> Counter
+
+A wrapper for the Spline and Counter portions of a Graph instance. The animation
+initialiser for the Graph wrapper and the nested Spline and Counter is
+controlled here.
+
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 class Graph {
@@ -23,17 +32,29 @@ class Graph {
 
         this.i = i;
         this.size = this.calcSize();
+        // the x and y position of the current spline segment where the counter
+        // will reside for its current duration.
         this.x = 0;
         this.y = 0;
+        // Animation speed for the graph x-offset,  the spline “wave” animation
+        // and the counter displacement.
         this.speed = 1000 * (this.i + 1);
+        // A hook for the “animation relevance” checks in the hero module. If
+        // the hero pings a callback but the current animation cycle is still
+        // going we do not want to run an additional animation sequence so
+        // instead we would change this boolean from “false” to “true” and the
+        // animation will continue seamlessly.
         this.animation = true;
 
+        // Create elements:
         this.$wrapper = this.buildWrapper();
         this.Spline = new Spline(this);
         this.Counter = new Counter(this);
 
-        // Prep
+        // Prep elements:
         this.fadeGraph();
+        // A number that acts as a percentage for both scale and x-axis offset
+        this.displacement = this.i + 1;
         this.setOffset();
         this.Counter.positionCounter({init: true});
         this.Counter.cycleCounterText({init: true});
@@ -64,7 +85,6 @@ class Graph {
         const $wrapper = $(`
             <div id="hero__graph-${this.i}"
                  class="hero__graph" />`);
-                //  style="width: ${100 + this.Hero.getOffset(this.i)}%"/>`);
 
         this.Hero.$wrapper.append($wrapper);
 
@@ -87,6 +107,9 @@ class Graph {
 
     fadeGraph() {
 
+        // Each graph has a staggered opacity that culminates at 100% on the
+        // last instance.
+
         var opacity = 1 / this.Hero.instances * (this.i + 1);
 
         this.Spline.paper.attr('opacity', opacity);
@@ -96,23 +119,33 @@ class Graph {
 
     setOffset() {
 
-        this.offset =  this.i % 2 * this.Hero.getOffset(this.i) * -1;
-        TweenMax.set(this.$wrapper, {scale: (this.Hero.getOffset(this.i) / 100) + 1, transformOrigin:'left center', x: `${this.offset}%`});
+        // Setting the graph offset to be either 0 or the displacement value.
+        // Offsets alternate between each instance off the Graph generation
+        // loop. The graph scale is also increased proportionally to the maximum
+        // displacement so that there are no bleed issue during the transitions.
+
+        this.offset =  this.i % 2 * this.displacement * -1;
+        TweenMax.set(this.$wrapper, {scale: (this.displacement / 100) + 1, transformOrigin:'left center', x: `${this.offset}%`});
 
     }
 
     toggleOffset() {
 
+        // At each animation loop we alternate the current offset between 0 and
+        // the displacement value.
+
         const speed = this.speed / 1000;
-        this.offset = this.offset === 0 ? this.Hero.getOffset(this.i) * -1 : 0;
+        this.offset = this.offset === 0 ? this.displacement * -1 : 0;
 
         TweenMax.to(this.$wrapper, speed, {x: `${this.offset}%`, ease: Sine.easeInOut});
 
     }
 
-    animateSequence() {
+    animateSpline() {
 
-        // console.log('animateSequence()');
+        // Runs a single animation loop of the Spline transition. We use
+        // SnapSVG’s animation callback to re-run this and the other animation
+        // sets again (if deemed relevant by the Hero Class).
 
         this.Spline.svg.animate(
 			{ path: this.Spline.createSpline() },
@@ -125,9 +158,12 @@ class Graph {
 
     animateCallback() {
 
+        // Either starts or stops the animation process based on the “animation
+        // relevance” check in the Hero Class.
+
         if (this.Hero.testRelevance()) {
 
-            this.animateSequence();
+            this.animateSpline();
             this.toggleOffset();
             this.Counter.positionCounter();
             this.Counter.cycleCounterText();
@@ -137,7 +173,11 @@ class Graph {
 
         } else {
 
-            this.animation = false; // set to false as some animation could still be going inbetween becoming relevan . irellivent
+            // We set the animation boolean to false as some animations could
+            // still be running in-between becoming relevant / irrelevant (which
+            // would result in two animations being called during the same
+            // transition loop).
+            this.animation = false;
 
         }
 
