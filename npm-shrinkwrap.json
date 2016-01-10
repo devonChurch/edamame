@@ -1,0 +1,50 @@
+{
+  "name": "edamame",
+  "version": "2.0.0",
+  "dependencies": {
+    "debounce": {
+      "version": "1.0.0",
+      "from": "debounce@*",
+      "resolved": "https://registry.npmjs.org/debounce/-/debounce-1.0.0.tgz",
+      "dependencies": {
+        "date-now": {
+          "version": "1.0.1",
+          "from": "date-now@1.0.1",
+          "resolved": "https://registry.npmjs.org/date-now/-/date-now-1.0.1.tgz"
+        }
+      }
+    },
+    "gsap": {
+      "version": "1.18.0",
+      "from": "gsap@>=1.18.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/gsap/-/gsap-1.18.0.tgz"
+    },
+    "ifvisible.js": {
+      "version": "1.0.6",
+      "from": "ifvisible.js@*",
+      "resolved": "https://registry.npmjs.org/ifvisible.js/-/ifvisible.js-1.0.6.tgz"
+    },
+    "jquery": {
+      "version": "2.1.4",
+      "from": "jquery@>=2.1.4 <3.0.0",
+      "resolved": "https://registry.npmjs.org/jquery/-/jquery-2.1.4.tgz"
+    },
+    "match-media": {
+      "version": "0.2.0",
+      "from": "match-media@*",
+      "resolved": "https://registry.npmjs.org/match-media/-/match-media-0.2.0.tgz"
+    },
+    "snapsvg": {
+      "version": "0.4.0",
+      "from": "snapsvg@*",
+      "resolved": "https://registry.npmjs.org/snapsvg/-/snapsvg-0.4.0.tgz",
+      "dependencies": {
+        "eve": {
+          "version": "0.4.2",
+          "from": "eve@>=0.4.2 <0.5.0",
+          "resolved": "https://registry.npmjs.org/eve/-/eve-0.4.2.tgz"
+        }
+      }
+    }
+  }
+}
