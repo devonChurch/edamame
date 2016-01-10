@@ -1,55 +1,98 @@
 .hero {
     background-image: linear-gradient(to bottom, palette(blueLight), palette(blueMedium));
-    height: 0;
-    overflow: hidden;
-    padding-top: 300 / 1024 * 100%;
+    // height: 100vh;
+    // max-height: 700px;
     position: relative;
-    transform: translateZ(0);
-    width: 100%;
 
-    &__graph,
-    &__svg {
-        left: 0;
-        position: absolute;
-        width: 100%;
-        top: 0;
-    }
+    &__content {
+		// left: 0;
+		line-height: 1.7;
+		padding: 15% 20px;
+		// position: absolute;
+        position: relative;
+		text-align: center;
+		// top: 50%;
+		// transform: translateY(-50%);
+		// width: 100%;
+		z-index: 10;
+	}
 
-    &__graph {
-        height: 100%;
-    }
-
-    &__svg {
-        height: auto;
-        width: 100%;
-    }
-
-    &__spline {
-
-        path {
-            fill: rgba(palette(blueDark), 0.2);
-            stroke-width: 1;
-            stroke: palette(blueDark);
-            stroke-linecap: round;
+    &__content,
+    &__button {
+        color: white;
+        font: {
+            family: 'Roboto', sans-serif;
+            size: 14px;
+            weight: 300;
         }
     }
 
-    &__counter {
-        z-index: 1;
+	&__title {
+		font: {
+			size: 40px;
+			weight: 100;
+		}
+		margin: 15px 0;
+	}
 
-        &-alignment {
-            fill: none;
-        }
+	&__introduction {
+		margin: 30px auto;
+		max-width: 600px;
+	}
 
-        &-point {
-            fill: palette(blueMedium);
-            stroke-width: 1;
-            stroke: palette(blueDark);
-        }
-    }
+	&__button {
+		background: transparent;
+		border: 0;
+        cursor: pointer;
+        display: inline-block;
+        margin: 15px;
+		padding: 6px 16px;
+		transition: opacity 0.25s ease-out;
 
-    &__number {
-        fill: palette(blueDark);
-        font-family: 'Roboto', sans-serif;
-    }
+		&:hover {
+			opacity: 0.5;
+		}
+
+		&--cta {
+			border: 2px solid white;
+			border-radius: 5px;
+            text-decoration: none;
+		}
+
+		&--video {
+			$ball: 34px;
+            outline: 0;
+			padding-right: 10px + $ball;
+			position: relative;
+
+			&:before,
+			&:after {
+				content: '';
+				display: block;
+				position: absolute;
+				top: 50%;
+				transform: translateY(-50%);
+			}
+
+			&:before {
+				border: 2px solid white;
+				border-radius: 50%;
+				height: $ball;
+				right: 0;
+				width: $ball;
+			}
+
+			&:after {
+				$triangle: 7px;
+				border: {
+					top: $triangle solid transparent;
+					bottom: $triangle solid transparent;
+					left: ($triangle * 1.5) solid white;
+				}
+				height: 0;
+				right: ($ball / 2) - 6px;
+				width: 0;
+			}
+		}
+	}
 }

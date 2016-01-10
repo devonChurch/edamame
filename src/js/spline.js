@@ -10,7 +10,7 @@ require('snapsvg');
 db   8D 88      88booo.   .88.   88  V888 88.
 `8888Y' 88      Y88888P Y888888P VP   V8P Y88888P
 
-Hero
+Edamame
   —> Graph
     —> [SPLINE]
     —> Counter
@@ -19,7 +19,7 @@ This Class produces a Graph instance “wave” element. On every Graph animatio
 cycle, we dynamically create a new wave instance and animate to the new splines
 path location using SnapSVG. Each generated wave instance has a randomised
 structure and an exponential growth pattern from left to right. Each concurrent
-Graph instance created from the Hero Class will produce a wave with an
+Graph instance created from the Edamame Class will produce a wave with an
 additional segment for further visual diversity.
 
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -85,7 +85,7 @@ class Spline {
         // Generates -> `M${x1},${y1}`;
 
         const x1 = 0;
-        const y1 = (this.Graph.Hero.size.height / 3 * 2) + (this.Graph.i * 5);
+        const y1 = (this.Graph.Edamame.size.height / 3 * 2) + (this.Graph.i * 5);
 
         this.Graph.x += x1;
         this.Graph.y += y1;
@@ -152,7 +152,7 @@ class Spline {
         }
 
         // Close off path (so that we can add in a fill)
-        svg += `V${this.Graph.Hero.size.height} H${0} z`;
+        svg += `V${this.Graph.Edamame.size.height} H${0} z`;
 
         return svg;
 

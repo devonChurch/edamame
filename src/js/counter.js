@@ -11,7 +11,7 @@ d8P  Y8 .8P  Y8. 88    88 888o  88 `~~88~~' 88'     88  `8D
 Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
  `Y88P'  `Y88P'  ~Y8888P' VP   V8P    YP    Y88888P 88   YD
 
- Hero
+ Edamame
   —> Graph
     —> Spline
     —> [COUNTER]
@@ -38,8 +38,8 @@ sequence that (visually) scales exponentially for added effect.
         // Create elements:
         this.paper = this.Graph.generatePaper(this, 'counter');
         this.$wrapper = this.buildCounter();
-        this.$number = this.$wrapper.find('> .hero__number');
-        this.$point = this.$wrapper.find('> .hero__counter-point');
+        this.$number = this.$wrapper.find('> .edamame__number');
+        this.$point = this.$wrapper.find('> .edamame__counter-point');
         this.digits = this.referenceDigits();
 
         // Prep elements:
@@ -118,11 +118,11 @@ sequence that (visually) scales exponentially for added effect.
 
         const x = 0;
         const y = 0;
-        const bigCircle = this.paper.circle(x, y, 30).attr('class', 'hero__counter-alignment');
-        const smallCircle = this.paper.circle(x, y, 5).attr('class', 'hero__counter-point');
+        const bigCircle = this.paper.circle(x, y, 30).attr('class', 'edamame__counter-alignment');
+        const smallCircle = this.paper.circle(x, y, 5).attr('class', 'edamame__counter-point');
         const numbers = this.buildNumbers();
-        this.paper.group(bigCircle, smallCircle, numbers).attr('class', 'hero__counter-anchor');
-        const $wrapper = this.Graph.Hero.$wrapper.find(`#hero__counter-${this.Graph.i} .hero__counter-anchor`);
+        this.paper.group(bigCircle, smallCircle, numbers).attr('class', 'edamame__counter-anchor');
+        const $wrapper = this.Graph.Edamame.$wrapper.find(`#edamame__counter-${this.Graph.i} .edamame__counter-anchor`);
 
         return $wrapper;
 
@@ -172,7 +172,7 @@ sequence that (visually) scales exponentially for added effect.
         //         -> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 (digit options)
 
         const numbers = this.paper.g().attr({
-            'class': 'hero__number',
+            'class': 'edamame__number',
             'transform': 'translate(-14, -14)'
         });
 
@@ -240,7 +240,7 @@ sequence that (visually) scales exponentially for added effect.
 
     invertNumber(number = this.Graph.y) {
 
-        this.Graph.y = this.Graph.Hero.size.height - number / 2;
+        this.Graph.y = this.Graph.Edamame.size.height - number / 2;
 
     }
 

@@ -1,0 +1,55 @@
+.edamame {
+    height: 0;
+    overflow: hidden;
+    padding-top: 300 / 1024 * 100%;
+    position: absolute;
+    bottom: 0;
+    transform: translateZ(0);
+    width: 100%;
+
+    &__graph,
+    &__svg {
+        left: 0;
+        position: absolute;
+        width: 100%;
+        top: 0;
+    }
+
+    &__graph {
+        height: 100%;
+    }
+
+    &__svg {
+        height: auto;
+        width: 100%;
+    }
+
+    &__spline {
+
+        path {
+            fill: rgba(palette(blueDark), 0.2);
+            stroke-width: 1;
+            stroke: palette(blueDark);
+            stroke-linecap: round;
+        }
+    }
+
+    &__counter {
+        z-index: 1;
+
+        &-alignment {
+            fill: none;
+        }
+
+        &-point {
+            fill: palette(blueMedium);
+            stroke-width: 1;
+            stroke: palette(blueDark);
+        }
+    }
+
+    &__number {
+        fill: palette(blueDark);
+        font-family: 'Roboto', sans-serif;
+    }
+}
