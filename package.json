@@ -1,10 +1,10 @@
 {
   "name": "edamame",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Animated SVG hero module.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "webpack-dev-server"
   },
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "ES6"
   ],
   "author": "Devon Church",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/devonChurch/edamame/issues"
   },
@@ -43,8 +43,11 @@
     "webpack-dev-server": "^1.12.1"
   },
   "dependencies": {
+    "debounce": "^1.0.0",
     "gsap": "^1.18.0",
+    "ifvisible.js": "^1.0.6",
     "jquery": "^2.1.4",
+    "match-media": "^0.2.0",
     "snapsvg": "^0.4.0"
   }
 }
