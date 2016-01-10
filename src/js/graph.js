@@ -13,7 +13,7 @@ const Counter = require('./counter');
 88. ~8~ 88 `88. 88   88 88      88   88
  Y888P  88   YD YP   YP 88      YP   YP
 
- Hero
+ Edamame
   —> [GRAPH]
     —> Spline
     —> Counter
@@ -26,9 +26,9 @@ controlled here.
 
 class Graph {
 
-    constructor (Hero, i) {
+    constructor (Edamame, i) {
 
-        this.Hero = Hero;
+        this.Edamame = Edamame;
 
         this.i = i;
         this.size = this.calcSize();
@@ -39,8 +39,8 @@ class Graph {
         // Animation speed for the graph x-offset,  the spline “wave” animation
         // and the counter displacement.
         this.speed = 1000 * (this.i + 1);
-        // A hook for the “animation relevance” checks in the hero module. If
-        // the hero pings a callback but the current animation cycle is still
+        // A hook for the “animation relevance” checks in the Edamame module. If
+        // the Edamame pings a callback but the current animation cycle is still
         // going we do not want to run an additional animation sequence so
         // instead we would change this boolean from “false” to “true” and the
         // animation will continue seamlessly.
@@ -66,7 +66,7 @@ class Graph {
     calcSize() {
 
         const total = this.i + 4;
-        const width = this.Hero.size.width / total;
+        const width = this.Edamame.size.width / total;
 
         return {total, width};
 
@@ -83,10 +83,10 @@ class Graph {
     buildWrapper() {
 
         const $wrapper = $(`
-            <div id="hero__graph-${this.i}"
-                 class="hero__graph" />`);
+            <div id="edamame__graph-${this.i}"
+                 class="edamame__graph" />`);
 
-        this.Hero.$wrapper.append($wrapper);
+        this.Edamame.$wrapper.append($wrapper);
 
         return $wrapper;
 
@@ -95,13 +95,13 @@ class Graph {
     generatePaper(that, type) {
 
         that.Graph.$wrapper.append($(`
-            <svg id="hero__${type}-${this.i}"
-                 class="hero__${type} hero__svg"
+            <svg id="edamame__${type}-${this.i}"
+                 class="edamame__${type} edamame__svg"
                  xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 ${this.Hero.size.width} ${this.Hero.size.height}"
+                 viewBox="0 0 ${this.Edamame.size.width} ${this.Edamame.size.height}"
                  preserveAspectRatio="xMidYMid meet" />`));
 
-        return Snap(`#hero__${type}-${this.i}`);
+        return Snap(`#edamame__${type}-${this.i}`);
 
     }
 
@@ -110,7 +110,7 @@ class Graph {
         // Each graph has a staggered opacity that culminates at 100% on the
         // last instance.
 
-        var opacity = 1 / this.Hero.instances * (this.i + 1);
+        var opacity = 1 / this.Edamame.instances * (this.i + 1);
 
         this.Spline.paper.attr('opacity', opacity);
         this.Counter.paper.attr('opacity', opacity);
@@ -145,7 +145,7 @@ class Graph {
 
         // Runs a single animation loop of the Spline transition. We use
         // SnapSVG’s animation callback to re-run this and the other animation
-        // sets again (if deemed relevant by the Hero Class).
+        // sets again (if deemed relevant by the Edamame Class).
 
         this.Spline.svg.animate(
 			{ path: this.Spline.createSpline() },
@@ -159,9 +159,9 @@ class Graph {
     animateCallback() {
 
         // Either starts or stops the animation process based on the “animation
-        // relevance” check in the Hero Class.
+        // relevance” check in the Edamame Class.
 
-        if (this.Hero.testRelevance()) {
+        if (this.Edamame.testRelevance()) {
 
             this.animateSpline();
             this.toggleOffset();

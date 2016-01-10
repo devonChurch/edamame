@@ -16,7 +16,7 @@ YP   YP Y88888P 88   YD  `Y88P'
 The main component Class that nests the other Class based references inside
 itself i.e.
 
-[HERO]
+[EDAMAME]
   —> Graph
     —> Spline
     —> Counter
@@ -31,12 +31,12 @@ animation when the following conditions are not met:
 
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-class Hero {
+class Edamame {
 
-    constructor() {
+    constructor({injectInto = $('body')} = {}) {
 
         this.$window = $(window);
-        this.$wrapper = $('#hero');
+        this.$wrapper = this.generateWrapper(injectInto);
         // How many graphs (x1 spline / counter combos) to build.
         this.instances = 4;
         // Anything less than this will not invoke animation.
@@ -50,6 +50,16 @@ class Hero {
             this.tabChangeListener();
 
         }, 0);
+
+    }
+
+    generateWrapper(injectInto) {
+
+        const $wrapper = $('<div id="edamame" class="edamame" />');
+
+        injectInto.append($wrapper);
+
+        return $wrapper;
 
     }
 
@@ -205,4 +215,4 @@ class Hero {
 
 }
 
-module.exports = new Hero();
+module.exports = Edamame;

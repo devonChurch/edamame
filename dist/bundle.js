@@ -47,7 +47,12 @@
 	'use strict';
 	
 	__webpack_require__(1);
-	__webpack_require__(5);
+	var Edamame = __webpack_require__(5);
+	
+	// Initialising for demo.
+	var $ = __webpack_require__(6);
+	var $hero = $('#hero');
+	var Demo = new Edamame({ injectInto: $hero });
 
 /***/ },
 /* 1 */
@@ -86,7 +91,7 @@
 	The main component Class that nests the other Class based references inside
 	itself i.e.
 	
-	[HERO]
+	[EDAMAME]
 	  —> Graph
 	    —> Spline
 	    —> Counter
@@ -101,14 +106,19 @@
 	
 	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
-	var Hero = (function () {
-	    function Hero() {
+	var Edamame = (function () {
+	    function Edamame() {
 	        var _this = this;
 	
-	        _classCallCheck(this, Hero);
+	        var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	
+	        var _ref$injectInto = _ref.injectInto;
+	        var injectInto = _ref$injectInto === undefined ? $('body') : _ref$injectInto;
+	
+	        _classCallCheck(this, Edamame);
 	
 	        this.$window = $(window);
-	        this.$wrapper = $('#hero');
+	        this.$wrapper = this.generateWrapper(injectInto);
 	        // How many graphs (x1 spline / counter combos) to build.
 	        this.instances = 4;
 	        // Anything less than this will not invoke animation.
@@ -123,7 +133,17 @@
 	        }, 0);
 	    }
 	
-	    _createClass(Hero, [{
+	    _createClass(Edamame, [{
+	        key: 'generateWrapper',
+	        value: function generateWrapper(injectInto) {
+	
+	            var $wrapper = $('<div id="edamame" class="edamame" />');
+	
+	            injectInto.append($wrapper);
+	
+	            return $wrapper;
+	        }
+	    }, {
 	        key: 'windowChangeListner',
 	        value: function windowChangeListner() {
 	
@@ -261,10 +281,10 @@
 	        }
 	    }]);
 	
-	    return Hero;
+	    return Edamame;
 	})();
 	
-	module.exports = new Hero();
+	module.exports = Edamame;
 
 /***/ },
 /* 6 */
@@ -9950,7 +9970,7 @@
 	88. ~8~ 88 `88. 88   88 88      88   88
 	 Y888P  88   YD YP   YP 88      YP   YP
 	
-	 Hero
+	 Edamame
 	  —> [GRAPH]
 	    —> Spline
 	    —> Counter
@@ -9962,10 +9982,10 @@
 	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	var Graph = (function () {
-	    function Graph(Hero, i) {
+	    function Graph(Edamame, i) {
 	        _classCallCheck(this, Graph);
 	
-	        this.Hero = Hero;
+	        this.Edamame = Edamame;
 	
 	        this.i = i;
 	        this.size = this.calcSize();
@@ -9976,8 +9996,8 @@
 	        // Animation speed for the graph x-offset,  the spline “wave” animation
 	        // and the counter displacement.
 	        this.speed = 1000 * (this.i + 1);
-	        // A hook for the “animation relevance” checks in the hero module. If
-	        // the hero pings a callback but the current animation cycle is still
+	        // A hook for the “animation relevance” checks in the Edamame module. If
+	        // the Edamame pings a callback but the current animation cycle is still
 	        // going we do not want to run an additional animation sequence so
 	        // instead we would change this boolean from “false” to “true” and the
 	        // animation will continue seamlessly.
@@ -10004,7 +10024,7 @@
 	        value: function calcSize() {
 	
 	            var total = this.i + 4;
-	            var width = this.Hero.size.width / total;
+	            var width = this.Edamame.size.width / total;
 	
 	            return { total: total, width: width };
 	        }
@@ -10021,9 +10041,9 @@
 	        key: 'buildWrapper',
 	        value: function buildWrapper() {
 	
-	            var $wrapper = $('\n            <div id="hero__graph-' + this.i + '"\n                 class="hero__graph" />');
+	            var $wrapper = $('\n            <div id="edamame__graph-' + this.i + '"\n                 class="edamame__graph" />');
 	
-	            this.Hero.$wrapper.append($wrapper);
+	            this.Edamame.$wrapper.append($wrapper);
 	
 	            return $wrapper;
 	        }
@@ -10031,9 +10051,9 @@
 	        key: 'generatePaper',
 	        value: function generatePaper(that, type) {
 	
-	            that.Graph.$wrapper.append($('\n            <svg id="hero__' + type + '-' + this.i + '"\n                 class="hero__' + type + ' hero__svg"\n                 xmlns="http://www.w3.org/2000/svg"\n                 viewBox="0 0 ' + this.Hero.size.width + ' ' + this.Hero.size.height + '"\n                 preserveAspectRatio="xMidYMid meet" />'));
+	            that.Graph.$wrapper.append($('\n            <svg id="edamame__' + type + '-' + this.i + '"\n                 class="edamame__' + type + ' edamame__svg"\n                 xmlns="http://www.w3.org/2000/svg"\n                 viewBox="0 0 ' + this.Edamame.size.width + ' ' + this.Edamame.size.height + '"\n                 preserveAspectRatio="xMidYMid meet" />'));
 	
-	            return Snap('#hero__' + type + '-' + this.i);
+	            return Snap('#edamame__' + type + '-' + this.i);
 	        }
 	    }, {
 	        key: 'fadeGraph',
@@ -10042,7 +10062,7 @@
 	            // Each graph has a staggered opacity that culminates at 100% on the
 	            // last instance.
 	
-	            var opacity = 1 / this.Hero.instances * (this.i + 1);
+	            var opacity = 1 / this.Edamame.instances * (this.i + 1);
 	
 	            this.Spline.paper.attr('opacity', opacity);
 	            this.Counter.paper.attr('opacity', opacity);
@@ -10078,7 +10098,7 @@
 	
 	            // Runs a single animation loop of the Spline transition. We use
 	            // SnapSVG’s animation callback to re-run this and the other animation
-	            // sets again (if deemed relevant by the Hero Class).
+	            // sets again (if deemed relevant by the Edamame Class).
 	
 	            this.Spline.svg.animate({ path: this.Spline.createSpline() }, this.speed, mina.easeinout, function () {
 	                _this.animateCallback();
@@ -10089,9 +10109,9 @@
 	        value: function animateCallback() {
 	
 	            // Either starts or stops the animation process based on the “animation
-	            // relevance” check in the Hero Class.
+	            // relevance” check in the Edamame Class.
 	
-	            if (this.Hero.testRelevance()) {
+	            if (this.Edamame.testRelevance()) {
 	
 	                this.animateSpline();
 	                this.toggleOffset();
@@ -25905,7 +25925,7 @@
 	db   8D 88      88booo.   .88.   88  V888 88.
 	`8888Y' 88      Y88888P Y888888P VP   V8P Y88888P
 	
-	Hero
+	Edamame
 	  —> Graph
 	    —> [SPLINE]
 	    —> Counter
@@ -25914,7 +25934,7 @@
 	cycle, we dynamically create a new wave instance and animate to the new splines
 	path location using SnapSVG. Each generated wave instance has a randomised
 	structure and an exponential growth pattern from left to right. Each concurrent
-	Graph instance created from the Hero Class will produce a wave with an
+	Graph instance created from the Edamame Class will produce a wave with an
 	additional segment for further visual diversity.
 	
 	\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -25980,7 +26000,7 @@
 	            // Generates -> `M${x1},${y1}`;
 	
 	            var x1 = 0;
-	            var y1 = this.Graph.Hero.size.height / 3 * 2 + this.Graph.i * 5;
+	            var y1 = this.Graph.Edamame.size.height / 3 * 2 + this.Graph.i * 5;
 	
 	            this.Graph.x += x1;
 	            this.Graph.y += y1;
@@ -26046,7 +26066,7 @@
 	            }
 	
 	            // Close off path (so that we can add in a fill)
-	            svg += 'V' + this.Graph.Hero.size.height + ' H' + 0 + ' z';
+	            svg += 'V' + this.Graph.Edamame.size.height + ' H' + 0 + ' z';
 	
 	            return svg;
 	        }
@@ -26080,7 +26100,7 @@
 	Y8b  d8 `8b  d8' 88b  d88 88  V888    88    88.     88 `88.
 	 `Y88P'  `Y88P'  ~Y8888P' VP   V8P    YP    Y88888P 88   YD
 	
-	 Hero
+	 Edamame
 	  —> Graph
 	    —> Spline
 	    —> [COUNTER]
@@ -26107,8 +26127,8 @@
 	        // Create elements:
 	        this.paper = this.Graph.generatePaper(this, 'counter');
 	        this.$wrapper = this.buildCounter();
-	        this.$number = this.$wrapper.find('> .hero__number');
-	        this.$point = this.$wrapper.find('> .hero__counter-point');
+	        this.$number = this.$wrapper.find('> .edamame__number');
+	        this.$point = this.$wrapper.find('> .edamame__counter-point');
 	        this.digits = this.referenceDigits();
 	
 	        // Prep elements:
@@ -26186,11 +26206,11 @@
 	
 	            var x = 0;
 	            var y = 0;
-	            var bigCircle = this.paper.circle(x, y, 30).attr('class', 'hero__counter-alignment');
-	            var smallCircle = this.paper.circle(x, y, 5).attr('class', 'hero__counter-point');
+	            var bigCircle = this.paper.circle(x, y, 30).attr('class', 'edamame__counter-alignment');
+	            var smallCircle = this.paper.circle(x, y, 5).attr('class', 'edamame__counter-point');
 	            var numbers = this.buildNumbers();
-	            this.paper.group(bigCircle, smallCircle, numbers).attr('class', 'hero__counter-anchor');
-	            var $wrapper = this.Graph.Hero.$wrapper.find('#hero__counter-' + this.Graph.i + ' .hero__counter-anchor');
+	            this.paper.group(bigCircle, smallCircle, numbers).attr('class', 'edamame__counter-anchor');
+	            var $wrapper = this.Graph.Edamame.$wrapper.find('#edamame__counter-' + this.Graph.i + ' .edamame__counter-anchor');
 	
 	            return $wrapper;
 	        }
@@ -26238,7 +26258,7 @@
 	            //         -> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 (digit options)
 	
 	            var numbers = this.paper.g().attr({
-	                'class': 'hero__number',
+	                'class': 'edamame__number',
 	                'transform': 'translate(-14, -14)'
 	            });
 	
@@ -26306,7 +26326,7 @@
 	        value: function invertNumber() {
 	            var number = arguments.length <= 0 || arguments[0] === undefined ? this.Graph.y : arguments[0];
 	
-	            this.Graph.y = this.Graph.Hero.size.height - number / 2;
+	            this.Graph.y = this.Graph.Edamame.size.height - number / 2;
 	        }
 	    }, {
 	        key: 'inspectNumber',
