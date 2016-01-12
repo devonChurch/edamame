@@ -9,20 +9,17 @@ Animated hero module using SVG animated paths.
 ## Installation
 
 - Clone this repository
-
-```javascript
-git clone https://github.com/devonChurch/edamame.git
+```
+git clone https://github.com/devonChurch/teriyaki-unagi.git
 ```
 
 - Install project dependancies
-
-```javascript
+```
 npm install
 ```
 
 - Start up a [Webpack](https://webpack.github.io/docs/webpack-dev-server.html) development server at http://localhost:8080/webpack-dev-server/
-
-```javascript
+```
 npm start
 ```
 
