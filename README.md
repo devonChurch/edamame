@@ -10,7 +10,7 @@ Animated hero module using SVG animated paths.
 
 - Clone this repository
 ```
-git clone https://github.com/devonChurch/teriyaki-unagi.git
+git clone https://github.com/devonChurch/edamame.git
 ```
 
 - Install project dependancies
